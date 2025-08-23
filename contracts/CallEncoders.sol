@@ -2,7 +2,7 @@
 // Source WS: wss://westend-asset-hub-rpc.polkadot.io
 pragma solidity ^0.8.24;
 
-import "../src/ScaleCodec.sol";
+import "./ScaleCodec.sol";
 import "./PalletCalls.sol";
 
 /// @title Typed SCALE encoders for selected calls (supported arg kinds only)
@@ -65,3 +65,4 @@ library CallEncoders {
         );
     }
 }
+    
