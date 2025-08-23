@@ -2,16 +2,11 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Command } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
+
 import { getEntries } from './entries';
 import { getCallsContract } from './callsContract';
 import { getCallEncoderContract } from './callEncoderContract';
-
-const sanitize = (s: string) => s.replace(/[^A-Za-z0-9_]/g, '_');
-
-function ensureDir(filePath: string) {
-  const dir = path.dirname(filePath);
-  if (dir && dir !== '.') fs.mkdirSync(dir, { recursive: true });
-}
+import { ensureDir, sanitize } from './helpers';
 
 const program = new Command()
   .option('--ws <url>', 'WebSocket endpoint', 'wss://westend-asset-hub-rpc.polkadot.io')
@@ -67,7 +62,6 @@ async function main() {
  - ${indicesPath}
  - ${encodersPath}
 (remember to place contracts/ScaleCodec.sol alongside)`);
-
   } finally {
     await api.disconnect();
   }

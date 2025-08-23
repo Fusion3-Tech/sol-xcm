@@ -1,21 +1,26 @@
-import { ApiPromise } from "@polkadot/api";
-import { Entry } from "./entries";
-import { sanitize } from "./helpers";
-import { Opts } from "./cli";
+import { type ApiPromise } from '@polkadot/api';
 
-export async function getCallsContract(api: ApiPromise, opts: Opts, entries: Entry[]): Promise<string> {
-    const chain = (await api.rpc.system.chain()).toString();
-    const specName = api.runtimeVersion.specName.toString();
-    const specVersion = api.runtimeVersion.specVersion.toNumber();
+import { type Entry } from './entries';
+import { sanitize } from './helpers';
+import { type Opts } from './cli';
 
-    const enumLines = entries.map((e) => `        ${e.enumName}`).join(',\n');
-    const caseLines = entries
-      .map(
-        (e) =>
-          `        else if (c == Call.${e.enumName}) return (${e.palletIndex}, ${e.callIndex}); // ${e.section}.${e.method}`,
-      )
-      .join('\n');
-    const callsContract = `// Auto-generated from ${chain} (${specName} v${specVersion})
+export async function getCallsContract(
+  api: ApiPromise,
+  opts: Opts,
+  entries: Entry[],
+): Promise<string> {
+  const chain = (await api.rpc.system.chain()).toString();
+  const specName = api.runtimeVersion.specName.toString();
+  const specVersion = api.runtimeVersion.specVersion.toNumber();
+
+  const enumLines = entries.map((e) => `        ${e.enumName}`).join(',\n');
+  const caseLines = entries
+    .map(
+      (e) =>
+        `        else if (c == Call.${e.enumName}) return (${e.palletIndex}, ${e.callIndex}); // ${e.section}.${e.method}`,
+    )
+    .join('\n');
+  const callsContract = `// Auto-generated from ${chain} (${specName} v${specVersion})
 // Source WS: ${opts.ws}
 pragma solidity ^0.8.24;
 
@@ -32,5 +37,5 @@ ${caseLines}
 }
     `;
 
-    return callsContract; 
+  return callsContract;
 }

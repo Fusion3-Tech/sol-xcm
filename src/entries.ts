@@ -1,5 +1,6 @@
-import { ApiPromise } from "@polkadot/api";
-import { sanitize } from "./helpers";
+import { type ApiPromise } from '@polkadot/api';
+
+import { sanitize } from './helpers';
 
 export type Entry = {
   enumName: string;

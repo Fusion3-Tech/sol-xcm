@@ -26,17 +26,32 @@ export default [
     },
     rules: {
       // TS QoL
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports', fixStyle: 'inline-type-imports' }],
-      '@typescript-eslint/ban-ts-comment': ['warn', {
-        'ts-ignore': 'allow-with-description',
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/consistent-type-imports': [
+        'warn',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
+      '@typescript-eslint/ban-ts-comment': [
+        'warn',
+        {
+          'ts-ignore': 'allow-with-description',
+        },
+      ],
 
       // import hygiene
-      'import/order': ['warn', {
-        groups: [['builtin', 'external'], ['internal', 'parent', 'sibling', 'index']],
-        'newlines-between': 'always',
-      }],
+      'import/order': [
+        'warn',
+        {
+          groups: [
+            ['builtin', 'external'],
+            ['internal', 'parent', 'sibling', 'index'],
+          ],
+          'newlines-between': 'always',
+        },
+      ],
 
       // misc
       'prefer-const': 'warn',
