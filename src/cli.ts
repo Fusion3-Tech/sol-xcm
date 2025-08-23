@@ -1,27 +1,23 @@
-import { Command } from "commander";
-import { DEFAULT_CONTRACT, DEFAULT_SOLC, DEFAULT_WS } from "./types";
-import { ensureDirForFile, sanitize } from "./helpers";
-import { ApiPromise, WsProvider } from "@polkadot/api";
-import { collectEntries, generateSolidity, toJsonMap } from "./core";
-import fs from "fs";
+import { Command } from 'commander';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import fs from 'fs';
+
+import { DEFAULT_CONTRACT, DEFAULT_SOLC, DEFAULT_WS } from './types';
+import { ensureDirForFile, sanitize } from './helpers';
+import { collectPalletCalls, generateSolidity } from './core';
+
 
 const program = new Command()
-  .name("generate-contract")
-  .description(
-    "Generate a Solidity enum + indices() mapping for selected pallets' calls."
-  )
+  .name('generate-xcm-interface')
+  .description("Generate a Solidity enum + indices() mapping for selected pallets' calls.")
   .argument(
-    "<pallets...>",
-    "Pallet names to include (case-insensitive), e.g. Balances System Utility"
+    '<pallets...>',
+    'Pallet names to include (case-insensitive), e.g. Balances System Utility',
   )
-  .option("--ws <url>", "WebSocket endpoint", DEFAULT_WS)
-  .option("-o, --out <file>", "Output .sol file path")
-  .option("-c, --contract <name>", "Contract name", DEFAULT_CONTRACT)
-  .option("--solc <version>", "Solidity pragma version", DEFAULT_SOLC)
-  .option(
-    "--json <file>",
-    "Optional: also write a JSON map of enumName → [palletIndex, callIndex]"
-  );
+  .option('--ws <url>', 'WebSocket endpoint', DEFAULT_WS)
+  .option('-o, --out <file>', 'Output .sol file path')
+  .option('-c, --contract <name>', 'Contract name', DEFAULT_CONTRACT)
+  .option('--solc <version>', 'Solidity pragma version', DEFAULT_SOLC);
 
 async function main() {
   const parsed = program.parse(process.argv);
@@ -37,7 +33,7 @@ async function main() {
   const contract = sanitize(opts.contract || DEFAULT_CONTRACT);
 
   if (!palletsArg.length) {
-    program.error("Please provide at least one pallet name.");
+    program.error('Please provide at least one pallet name.');
   }
 
   const api = await ApiPromise.create({ provider: new WsProvider(opts.ws) });
@@ -46,10 +42,10 @@ async function main() {
     const specName = api.runtimeVersion.specName.toString();
     const specVersion = api.runtimeVersion.specVersion.toNumber();
 
-    const entries = await collectEntries(api, palletsArg);
+    const entries = await collectPalletCalls(api, palletsArg);
 
     if (entries.length === 0) {
-      console.error("❌ No matching calls found. Check pallet names.");
+      console.error('❌ No matching calls found. Check pallet names.');
       process.exit(1);
     }
 
@@ -64,24 +60,14 @@ async function main() {
       palletsLower: palletsArg,
     });
 
-    const outFile =
-      opts.out ??
-      `${sanitize(contract)}_${sanitize(specName)}_v${specVersion}.sol`;
+    const outFile = opts.out ?? `${sanitize(contract)}_${sanitize(specName)}_v${specVersion}.sol`;
 
     ensureDirForFile(outFile);
     fs.writeFileSync(outFile, solidity);
 
-    if (opts.json) {
-      ensureDirForFile(opts.json);
-      fs.writeFileSync(opts.json, JSON.stringify(toJsonMap(entries), null, 2));
-    }
-
     console.log(
-      `✅ Wrote ${outFile} (${entries.length} calls) from pallets: ${palletsArg.join(
-        ", "
-      )}`
+      `✅ Wrote ${outFile} (${entries.length} calls) from pallets: ${palletsArg.join(', ')}`,
     );
-    if (opts.json) console.log(`🗂  JSON map → ${opts.json}`);
   } finally {
     await api.disconnect();
   }

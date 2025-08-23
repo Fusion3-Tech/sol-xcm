@@ -1,5 +1,6 @@
-import { ApiPromise } from "@polkadot/api";
-import { sanitize } from "./helpers";
+import { type ApiPromise } from '@polkadot/api';
+
+import { sanitize } from './helpers';
 
 type Entry = {
   enumName: string;
@@ -9,18 +10,18 @@ type Entry = {
   callIndex: number;
 };
 
-export async function collectEntries(
+export async function collectPalletCalls(
   api: ApiPromise,
-  palletsLower: string[]
+  palletsLower: string[],
 ): Promise<Entry[]> {
   const entries: Entry[] = [];
 
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
     if (!palletsLower.includes(section.toLowerCase())) continue;
 
-    for (const [method, extrinsic] of Object.entries(sectionMethods as any)) {
+    for (const [method, extrinsic] of Object.entries(sectionMethods)) {
       // @ts-ignore polkadot-js: callIndex exists on tx functions
-      if (!extrinsic || !extrinsic.meta || !("callIndex" in extrinsic)) continue;
+      if (!extrinsic || !extrinsic.meta || !('callIndex' in extrinsic)) continue;
 
       const [palletIndex, callIndex] = extrinsic.callIndex as Uint8Array;
       const enumName = sanitize(`${section}_${method}`);
@@ -39,7 +40,7 @@ export async function collectEntries(
     (a, b) =>
       a.palletIndex - b.palletIndex ||
       a.callIndex - b.callIndex ||
-      a.enumName.localeCompare(b.enumName)
+      a.enumName.localeCompare(b.enumName),
   );
 
   return entries;
@@ -55,18 +56,18 @@ export function generateSolidity(opts: {
   entries: Entry[];
   palletsLower: string[];
 }): string {
-  const enumLines = opts.entries.map((e) => `        ${e.enumName}`).join(",\n");
+  const enumLines = opts.entries.map((e) => `        ${e.enumName}`).join(',\n');
 
   const caseLines = opts.entries
     .map(
       (e) =>
-        `        else if (c == Call.${e.enumName}) return (${e.palletIndex}, ${e.callIndex}); // ${e.section}.${e.method}`
+        `        else if (c == Call.${e.enumName}) return (${e.palletIndex}, ${e.callIndex}); // ${e.section}.${e.method}`,
     )
-    .join("\n");
+    .join('\n');
 
   return `// Auto-generated from ${opts.chain} (${opts.specName} v${opts.specVersion})
 // Source WS: ${opts.ws}
-// Pallets: ${opts.palletsLower.join(", ")}
+// Pallets: ${opts.palletsLower.join(', ')}
 pragma solidity ^${opts.solc};
 
 contract ${opts.contract} {
@@ -81,11 +82,4 @@ ${caseLines}
     }
 }
 `;
-}
-
-export function toJsonMap(entries: Entry[]) {
-  // { [enumName]: [palletIndex, callIndex] }
-  return Object.fromEntries(
-    entries.map((e) => [e.enumName, [e.palletIndex, e.callIndex]])
-  );
 }
