@@ -3,65 +3,32 @@
 pragma solidity ^0.8.24;
 
 import "./ScaleCodec.sol";
-import "./PalletCalls.sol";
+import "./CallEncoders.sol";
 
 /// @title Typed SCALE encoders for selected calls (supported arg kinds only)
 library CallEncoders {
-    /// @notice system.remark
-    function system_remark(bytes memory remark) internal pure returns (bytes memory) {
+    // Skipped balances.transferAllowDeath: unsupported arg types: dest:AccountIdLookupOf, value:Balance
+
+    // Skipped balances.forceTransfer: unsupported arg types: source:AccountIdLookupOf, dest:AccountIdLookupOf, value:Balance
+
+    // Skipped balances.transferKeepAlive: unsupported arg types: dest:AccountIdLookupOf, value:Balance
+
+    // Skipped balances.transferAll: unsupported arg types: dest:AccountIdLookupOf, keepAlive:bool
+
+    // Skipped balances.forceUnreserve: unsupported arg types: who:AccountIdLookupOf, amount:Balance
+
+    // Skipped balances.upgradeAccounts: unsupported arg types: who:Vec<AccountId>
+
+    // Skipped balances.forceSetBalance: unsupported arg types: who:AccountIdLookupOf, newFree:Balance
+
+    // Skipped balances.forceAdjustTotalIssuance: unsupported arg types: direction:AdjustmentDirection, delta:Balance
+
+    /// @notice balances.burn
+    function balances_burn(uint128 value, bool keepAlive) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(0, 0),
-            ScaleCodec.vecU8(remark)
-        );
-    }
-
-    /// @notice system.setHeapPages
-    function system_setHeapPages(uint64 pages) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(0, 1),
-            ScaleCodec.u64LE(pages)
-        );
-    }
-
-    /// @notice system.setCode
-    function system_setCode(bytes memory code) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(0, 2),
-            ScaleCodec.vecU8(code)
-        );
-    }
-
-    /// @notice system.setCodeWithoutChecks
-    function system_setCodeWithoutChecks(bytes memory code) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(0, 3),
-            ScaleCodec.vecU8(code)
-        );
-    }
-
-    // Skipped system.setStorage: unsupported arg types: items:Vec<KeyValue>
-
-    // Skipped system.killStorage: unsupported arg types: keys:Vec<Key>
-
-    // Skipped system.killPrefix: unsupported arg types: prefix:Key, subkeys:u32
-
-    /// @notice system.remarkWithEvent
-    function system_remarkWithEvent(bytes memory remark) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(0, 7),
-            ScaleCodec.vecU8(remark)
-        );
-    }
-
-    // Skipped system.authorizeUpgrade: unsupported arg types: codeHash:Hash
-
-    // Skipped system.authorizeUpgradeWithoutChecks: unsupported arg types: codeHash:Hash
-
-    /// @notice system.applyAuthorizedUpgrade
-    function system_applyAuthorizedUpgrade(bytes memory code) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(0, 11),
-            ScaleCodec.vecU8(code)
+            ScaleCodec.callIndex(10, 10),
+            ScaleCodec.u128LE(value),
+            ScaleCodec.boolean(keepAlive)
         );
     }
 }

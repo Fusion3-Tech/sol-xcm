@@ -1,25 +1,23 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Command } from 'commander';
 import fs from 'node:fs';
+import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { getEntries } from './entries';
-import { getCallsContract } from './callsContract';
 import { getCallEncoderContract } from './callEncoderContract';
 import { ensureDir, sanitize } from './helpers';
 
 const program = new Command()
   .option('--ws <url>', 'WebSocket endpoint', 'wss://westend-asset-hub-rpc.polkadot.io')
   .option('--out-dir <dir>', 'Output contracts directory', 'contracts')
-  .option('--contract <name>', 'Indices contract name', 'PalletCalls')
-  .option('--encoders <name>', 'Encoders library name', 'CallEncoders')
+  .option('--contract <name>', 'Encoder contract name', 'CallEncoders')
   .argument('<pallets...>', 'Pallet names to include (e.g. Balances System)');
 
 export type Opts = {
   ws: string;
   outDir: string;
   contract: string;
-  encoders: string;
 };
 
 async function main() {
@@ -47,21 +45,19 @@ async function main() {
         a.enumName.localeCompare(b.enumName),
     );
 
-    const callsContract = await getCallsContract(api, opts, entries);
     const callEncoderContract = await getCallEncoderContract(api, opts, entries);
 
     // write files
-    const indicesPath = path.join(opts.outDir, `${sanitize(opts.contract)}.sol`);
-    const encodersPath = path.join(opts.outDir, `${sanitize(opts.encoders)}.sol`);
-    ensureDir(indicesPath);
-    ensureDir(encodersPath);
-    fs.writeFileSync(indicesPath, callsContract);
-    fs.writeFileSync(encodersPath, callEncoderContract);
+    const encodersOutPath = path.join(opts.outDir, `${sanitize(opts.contract)}.sol`);
+    const scaleCodecOutPath = path.join(opts.outDir, 'ScaleCodec.sol');
+    ensureDir(encodersOutPath);
+    ensureDir(scaleCodecOutPath);
+    fs.writeFileSync(encodersOutPath, callEncoderContract);
+    copyFile('src/contracts/ScaleCodec.sol', scaleCodecOutPath, 0);
 
     console.log(`✅ Wrote:
- - ${indicesPath}
- - ${encodersPath}
-(remember to place contracts/ScaleCodec.sol alongside)`);
+ - ${encodersOutPath}
+ - ${scaleCodecOutPath}`);
   } finally {
     await api.disconnect();
   }

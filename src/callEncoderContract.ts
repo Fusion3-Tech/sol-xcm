@@ -1,8 +1,8 @@
-import { type ApiPromise } from '@polkadot/api';
+import { ApiPromise } from '@polkadot/api';
 
-import { type Entry, type ParamKind } from './entries';
+import { Entry, ParamKind } from './entries';
 import { sanitize } from './helpers';
-import { type Opts } from './cli';
+import { Opts } from './cli';
 
 export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entries: Entry[]) {
   const chain = (await api.rpc.system.chain()).toString();
@@ -81,7 +81,7 @@ import "./ScaleCodec.sol";
 import "./${sanitize(opts.contract)}.sol";
 
 /// @title Typed SCALE encoders for selected calls (supported arg kinds only)
-library ${sanitize(opts.encoders)} {
+library ${sanitize(opts.contract)} {
 ${encoderFns.join('\n\n')}
 }
     `;
