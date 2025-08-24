@@ -1,0 +1,37 @@
+name: sol-xcm ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: ['20.x', '22.x']
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          npm install -g npm@latest
+          npm i
+
+      # Run linter
+      - name: Run Linter
+        run: npm run lint
+
+      # Check Prettier
+      - name: Check Prettier
+        run: npm run prettier:check
