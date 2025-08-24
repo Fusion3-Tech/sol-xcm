@@ -40,7 +40,13 @@ export default [
           'ts-ignore': 'allow-with-description',
         },
       ],
-
+      '@typescript-eslint/no-explicit-any': [
+        'warn',
+        {
+          ignoreRestArgs: true,
+          fixToUnknown: false,
+        },
+      ],
       // import hygiene
       'import/order': [
         'warn',

@@ -25,6 +25,11 @@ export type ParamKind =
   | 'Bool'
   | 'Unsupported';
 
+type CallArg = {
+  name: string;
+  type: any;
+};
+
 function classifyType(typeStrRaw: string): ParamKind {
   const t = typeStrRaw.replace(/\s/g, '').toLowerCase();
 
@@ -53,11 +58,7 @@ function classifyType(typeStrRaw: string): ParamKind {
 }
 
 // decide on a readable type string for an arg
-function resolveTypeStr(api: ApiPromise, arg: any): string {
-  // Prefer explicit typeName if present in metadata
-  const tn = arg.typeName?.toString();
-  if (tn && tn !== '') return tn;
-
+function resolveTypeStr(api: ApiPromise, arg: CallArg): string {
   const raw = arg.type?.toString?.() ?? String(arg.type);
 
   // Lookup id if it's purely numeric or already a "Lookup..." marker
@@ -77,17 +78,17 @@ export async function getEntries(api: ApiPromise, pallets: string[]): Promise<En
 
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
     if (!pallets.includes(section.toLowerCase())) continue;
-    for (const [method, extrinsic] of Object.entries(sectionMethods as any)) {
+    for (const [method, extrinsic] of Object.entries(sectionMethods)) {
       // @ts-ignore
       if (!extrinsic || !extrinsic.meta || !('callIndex' in extrinsic)) continue;
       const [palletIndex, callIndex] = extrinsic.callIndex as Uint8Array;
 
       // gather arg info
       // @ts-ignore
-      const metaArgs = extrinsic.meta.args as Array<{ name: any; type: any; typeName?: any }>;
+      const metaArgs = extrinsic.meta.args;
       const args = metaArgs.map((a) => {
         const name = a.name.toString();
-        const typeStr = resolveTypeStr(api, a);
+        const typeStr = resolveTypeStr(api, { name: a.name.toString(), type: a.type });
         return { name, typeStr, kind: classifyType(typeStr) };
       });
 

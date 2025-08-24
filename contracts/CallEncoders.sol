@@ -7,27 +7,76 @@ import "./CallEncoders.sol";
 
 /// @title Typed SCALE encoders for selected calls (supported arg kinds only)
 library CallEncoders {
-    // Skipped balances.transferAllowDeath: unsupported arg types: dest:AccountIdLookupOf, value:Balance
+    /// @notice balances.transferAllowDeath
+    function balances_transferAllowDeath_id32(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 0),
+            ScaleCodec.multiAddressId32(dest),
+            ScaleCodec.compactU128(value)
+        );
+    }
 
-    // Skipped balances.forceTransfer: unsupported arg types: source:AccountIdLookupOf, dest:AccountIdLookupOf, value:Balance
+    /// @notice balances.forceTransfer
+    function balances_forceTransfer_id32(bytes32 source, bytes32 dest, uint128 value) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 2),
+            ScaleCodec.multiAddressId32(source),
+            ScaleCodec.multiAddressId32(dest),
+            ScaleCodec.compactU128(value)
+        );
+    }
 
-    // Skipped balances.transferKeepAlive: unsupported arg types: dest:AccountIdLookupOf, value:Balance
+    /// @notice balances.transferKeepAlive
+    function balances_transferKeepAlive_id32(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 3),
+            ScaleCodec.multiAddressId32(dest),
+            ScaleCodec.compactU128(value)
+        );
+    }
 
-    // Skipped balances.transferAll: unsupported arg types: dest:AccountIdLookupOf, keepAlive:bool
+    /// @notice balances.transferAll
+    function balances_transferAll_id32(bytes32 dest, bool keepAlive) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 4),
+            ScaleCodec.multiAddressId32(dest),
+            ScaleCodec.boolean(keepAlive)
+        );
+    }
 
-    // Skipped balances.forceUnreserve: unsupported arg types: who:AccountIdLookupOf, amount:Balance
+    /// @notice balances.forceUnreserve
+    function balances_forceUnreserve_id32(bytes32 who, uint128 amount) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 5),
+            ScaleCodec.multiAddressId32(who),
+            ScaleCodec.u128LE(amount)
+        );
+    }
 
-    // Skipped balances.upgradeAccounts: unsupported arg types: who:Vec<AccountId>
+    /// @notice balances.upgradeAccounts
+    function balances_upgradeAccounts(bytes32 who) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 6),
+            ScaleCodec.u128LE(uint128(uint256(who)))
+        );
+    }
 
-    // Skipped balances.forceSetBalance: unsupported arg types: who:AccountIdLookupOf, newFree:Balance
+    /// @notice balances.forceSetBalance
+    function balances_forceSetBalance_id32(bytes32 who, uint128 newFree) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 8),
+            ScaleCodec.multiAddressId32(who),
+            ScaleCodec.compactU128(newFree)
+        );
+    }
 
-    // Skipped balances.forceAdjustTotalIssuance: unsupported arg types: direction:AdjustmentDirection, delta:Balance
+    // Skipped balances.forceAdjustTotalIssuance: unsupported arg types: direction:PalletBalancesAdjustmentDirection, delta:Compact<u128>
 
     /// @notice balances.burn
     function balances_burn(uint128 value, bool keepAlive) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 10),
-            ScaleCodec.u128LE(value),
+            ScaleCodec.compactU128(value),
             ScaleCodec.boolean(keepAlive)
         );
     }
