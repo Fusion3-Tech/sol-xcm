@@ -1,6 +1,8 @@
 import { type ApiPromise } from '@polkadot/api';
+import { TypeDefInfo } from '@polkadot/types-create';
 
 import { sanitize } from './helpers';
+import { TypeDef } from '@polkadot/types-create/types';
 
 export type Entry = {
   enumName: string;
@@ -8,7 +10,7 @@ export type Entry = {
   method: string;
   palletIndex: number;
   callIndex: number;
-  args: Array<{ name: string; typeStr: string; kind: ParamKind }>;
+  args: ArgDesc[];
 };
 
 export type ParamKind =
@@ -23,55 +25,161 @@ export type ParamKind =
   | 'U128'
   | 'Bytes'
   | 'Bool'
+  | 'EnumUnit'
+  | 'EnumData'
+  | 'Option'
   | 'Unsupported';
 
-type CallArg = {
-  name: string;
-  type: any;
+export type EnumInfoUnit = {
+  kind: 'EnumUnit';
+  rustName: string;
+  solName: string;
+  variants: string[]; // index is the SCALE tag
 };
 
-function classifyType(typeStrRaw: string): ParamKind {
-  const t = typeStrRaw.replace(/\s/g, '').toLowerCase();
+export type EnumField = {
+  name?: string;          // present for struct-like variants
+  typeStr: string;        // resolved, friendly
+};
 
-  // Common first: MultiAddress
-  if (t.includes('multiaddress')) return 'MultiAddressId32'; // we encode Id(AccountId32) variant
+export type EnumInfoData = {
+  kind: 'EnumData';
+  rustName: string;
+  solName: string;
+  variants: Array<{
+    name: string;
+    fields: EnumField[];  // empty => unit variant
+  }>;
+};
+
+export type DiscoveredEnum = EnumInfoUnit | EnumInfoData;
+
+export type ArgDesc = {
+  name: string;
+  typeStr: string;
+  kind: ParamKind;
+  enumInfo?: DiscoveredEnum;
+};
+
+function isLookupLike(raw: string) {
+  return /^\d+$/.test(raw) || raw.startsWith('Lookup');
+}
+
+function friendlyType(def: TypeDef): string {
+  return (def.lookupName || def.type || 'Unknown').toString();
+}
+
+function toEnumInfo(typeStr: string, variants: string[]) {
+  const base = (typeStr || 'Enum');
+  const solName = sanitize(base);
+  return { rustName: base, solName, variants };
+}
+
+export function resolveTypeStr(api: ApiPromise, arg: any): string {
+    const tn = arg.typeName?.toString?.() || '';
+  const raw = arg.type?.toString?.() ?? String(arg.type);
+  if (tn) return tn;
+  if (isLookupLike(raw)) {
+    const def = api.registry.lookup.getTypeDef(arg.type);
+    return friendlyType(def);
+  }
+  return raw;
+}
+
+
+// Try to get a TypeDef for the arg (only if lookup-like)
+function getTypeDefIfLookup(api: ApiPromise, arg: any): TypeDef | null {
+  const raw = arg.type?.toString?.() ?? String(arg.type);
+  if (!isLookupLike(raw)) return null;
+  return api.registry.lookup.getTypeDef(arg.type);
+}
+
+// Extract enum details from a TypeDef, handling unit/tuple/struct variants
+function enumFromTypeDef(def: TypeDef): DiscoveredEnum | null {
+  console.log(def);
+  if (def.info !== TypeDefInfo.Enum || !Array.isArray(def.sub)) return null;
+
+  const subs = def.sub as TypeDef[]; // one entry per variant; has .name and its own .info/.sub
+
+  // Is it purely unit variants?
+  const unitOnly = subs.every((v) =>
+    v.info === TypeDefInfo.Null ||
+    (typeof v.type === 'string' && v.type.toLowerCase() === 'null') ||
+    v.sub == null // nothing nested
+  );
+
+  const rustName = friendlyType(def);
+  const solName = sanitize(rustName);
+
+  if (unitOnly) {
+    const variants = subs.map((v) => (v.name || '').toString());
+    return { kind: 'EnumUnit', rustName, solName, variants };
+  }
+
+  // Data-carrying variants: tuple/struct
+  const variants = subs.map((v) => {
+    const vName = (v.name || '').toString();
+
+    // Tuple variant: v.info === Tuple with v.sub: TypeDef[]
+    if (v.info === TypeDefInfo.Tuple && Array.isArray(v.sub)) {
+      const fields = (v.sub as TypeDef[]).map((fd) => ({
+        typeStr: friendlyType(fd),
+      }));
+      return { name: vName, fields };
+    }
+
+    // Struct variant: v.info === Struct with v.sub: TypeDef[] (with .name)
+    if (v.info === TypeDefInfo.Struct && Array.isArray(v.sub)) {
+      const fields = (v.sub as TypeDef[]).map((fd) => ({
+        name: fd.name?.toString(),
+        typeStr: friendlyType(fd),
+      }));
+      return { name: vName, fields };
+    }
+
+    // Fallback: treat as unit if unsure
+    return { name: vName, fields: [] };
+  });
+
+  return { kind: 'EnumData', rustName, solName, variants };
+}
+
+export function describeArg(api: ApiPromise, a: any): ArgDesc {
+  const name = a.name.toString();
+  const typeStr = resolveTypeStr(api, a);
+  const def = getTypeDefIfLookup(api, a);
+  if (def) {
+    const en = enumFromTypeDef(def);
+    if (en) {
+      return {
+        name,
+        typeStr: en.rustName,
+        kind: en.kind,
+        enumInfo: en,
+      };
+    }
+  }
+  return { name, typeStr, kind: classifyPrimitive(typeStr) };
+}
+
+function classifyPrimitive(typeStr: string): ParamKind {
+  const t = typeStr.replace(/\s/g, '').toLowerCase();
+  if (t.includes('multiaddress')) return 'MultiAddressId32';
   if (t.includes('accountid32') || t === 'accountid') return 'AccountId32';
-
-  // Compact<...>
   if (t.startsWith('compact<')) {
     if (t.includes('u128') || t.includes('balance')) return 'CompactU128';
     if (t.includes('u32')) return 'CompactU32';
   }
-
-  // Primitives / aliases frequently seen
   if (t === 'bool') return 'Bool';
   if (t === 'u8') return 'U8';
   if (t === 'u16') return 'U16';
   if (t === 'u32') return 'U32';
   if (t === 'u64') return 'U64';
   if (t === 'u128' || t.endsWith('balance')) return 'U128';
-
-  // Bytes/Vec<u8>
   if (t === 'bytes' || t === 'vec<u8>' || t.includes('boundedvec<u8')) return 'Bytes';
-
   return 'Unsupported';
 }
 
-// decide on a readable type string for an arg
-function resolveTypeStr(api: ApiPromise, arg: CallArg): string {
-  const raw = arg.type?.toString?.() ?? String(arg.type);
-
-  // Lookup id if it's purely numeric or already a "Lookup..." marker
-  const isLookupLike = /^\d+$/.test(raw) || raw.startsWith('Lookup');
-  if (isLookupLike) {
-    const def = api.registry.lookup.getTypeDef(arg.type);
-    // Use a nice name if available, otherwise the raw def.type
-    return (def.lookupName || def.type || raw).toString();
-  }
-
-  // Concrete type like "Bytes", "Vec<u8>", "Balance"
-  return raw;
-}
 
 export async function getEntries(api: ApiPromise, pallets: string[]): Promise<Entry[]> {
   const entries: Entry[] = [];
@@ -87,10 +195,11 @@ export async function getEntries(api: ApiPromise, pallets: string[]): Promise<En
       // @ts-ignore
       const metaArgs = extrinsic.meta.args;
       const args = metaArgs.map((a) => {
-        const name = a.name.toString();
-        const typeStr = resolveTypeStr(api, { name: a.name.toString(), type: a.type });
-        return { name, typeStr, kind: classifyType(typeStr) };
+        const typeStr = describeArg(api, { name: a.name.toString(), type: a.type });
+        return typeStr;
       });
+
+      console.log(args);
 
       entries.push({
         enumName: sanitize(`${section}_${method}`),
