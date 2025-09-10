@@ -1,6 +1,6 @@
 import { ApiPromise } from '@polkadot/api';
 
-import { ArgDesc, Entry, ParamKind } from './entries';
+import { ArgDesc, Entry } from './entries';
 import { sanitize } from './helpers';
 import { Opts } from './cli';
 

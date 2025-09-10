@@ -36,11 +36,11 @@ library CallEncoders {
     }
 
     /// @notice balances.transferAll
-    function balances_transferAll_id32(bytes32 dest, bool keepAlive) internal pure returns (bytes memory) {
+    function balances_transferAll_id32(bytes32 dest, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 4),
             ScaleCodec.multiAddressId32(dest),
-            ScaleCodec.boolean(keepAlive)
+            ScaleCodec.boolean(keep_alive)
         );
     }
 
@@ -62,22 +62,29 @@ library CallEncoders {
     }
 
     /// @notice balances.forceSetBalance
-    function balances_forceSetBalance_id32(bytes32 who, uint128 newFree) internal pure returns (bytes memory) {
+    function balances_forceSetBalance_id32(bytes32 who, uint128 new_free) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 8),
             ScaleCodec.multiAddressId32(who),
-            ScaleCodec.compactU128(newFree)
+            ScaleCodec.compactU128(new_free)
         );
     }
 
-    // Skipped balances.forceAdjustTotalIssuance: unsupported arg types: direction:PalletBalancesAdjustmentDirection, delta:Compact<u128>
+    /// @notice balances.forceAdjustTotalIssuance
+    function balances_forceAdjustTotalIssuance(PalletBalancesAdjustmentDirection direction, uint128 delta) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 9),
+            encode_PalletBalancesAdjustmentDirection(direction),
+            ScaleCodec.compactU128(delta)
+        );
+    }
 
     /// @notice balances.burn
-    function balances_burn(uint128 value, bool keepAlive) internal pure returns (bytes memory) {
+    function balances_burn(uint128 value, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 10),
             ScaleCodec.compactU128(value),
-            ScaleCodec.boolean(keepAlive)
+            ScaleCodec.boolean(keep_alive)
         );
     }
 }

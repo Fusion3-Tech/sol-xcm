@@ -76,16 +76,14 @@ function toEnumInfo(typeStr: string, variants: string[]) {
 }
 
 export function resolveTypeStr(api: ApiPromise, arg: any): string {
-    const tn = arg.typeName?.toString?.() || '';
   const raw = arg.type?.toString?.() ?? String(arg.type);
-  if (tn) return tn;
   if (isLookupLike(raw)) {
+    console.log('lookup like'); // never lookup like
     const def = api.registry.lookup.getTypeDef(arg.type);
     return friendlyType(def);
   }
   return raw;
 }
-
 
 // Try to get a TypeDef for the arg (only if lookup-like)
 function getTypeDefIfLookup(api: ApiPromise, arg: any): TypeDef | null {
@@ -96,7 +94,6 @@ function getTypeDefIfLookup(api: ApiPromise, arg: any): TypeDef | null {
 
 // Extract enum details from a TypeDef, handling unit/tuple/struct variants
 function enumFromTypeDef(def: TypeDef): DiscoveredEnum | null {
-  console.log(def);
   if (def.info !== TypeDefInfo.Enum || !Array.isArray(def.sub)) return null;
 
   const subs = def.sub as TypeDef[]; // one entry per variant; has .name and its own .info/.sub
@@ -147,7 +144,8 @@ function enumFromTypeDef(def: TypeDef): DiscoveredEnum | null {
 export function describeArg(api: ApiPromise, a: any): ArgDesc {
   const name = a.name.toString();
   const typeStr = resolveTypeStr(api, a);
-  const def = getTypeDefIfLookup(api, a);
+  const def = getTypeDefIfLookup(api, a); // this has to be fixed.
+  // We actually never find a lookup...
   if (def) {
     const en = enumFromTypeDef(def);
     if (en) {
@@ -180,11 +178,11 @@ function classifyPrimitive(typeStr: string): ParamKind {
   return 'Unsupported';
 }
 
-
 export async function getEntries(api: ApiPromise, pallets: string[]): Promise<Entry[]> {
   const entries: Entry[] = [];
 
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
+    // console.log(JSON.stringify(sectionMethods));
     if (!pallets.includes(section.toLowerCase())) continue;
     for (const [method, extrinsic] of Object.entries(sectionMethods)) {
       // @ts-ignore
@@ -193,13 +191,43 @@ export async function getEntries(api: ApiPromise, pallets: string[]): Promise<En
 
       // gather arg info
       // @ts-ignore
-      const metaArgs = extrinsic.meta.args;
+      const metaArgs = extrinsic.toJSON().fields;
+      // with fields all params are lookup like, so it is the way to go ^
+      // We even have docs then.
+
+      // NOTE!!!! !!!! Way to go: push all of this code to a new branch ->
+      // Then open a new clean branch and based on the work here do everything properly.
+      /*
+        Example:
+        ```
+        {
+          name: 'burn',
+          fields: [
+            { name: 'value', type: 55, typeName: 'T::Balance', docs: [] },
+            { name: 'keep_alive', type: 8, typeName: 'bool', docs: [] }
+          ],
+          index: 10,
+          docs: [
+            'Burn the specified liquid free balance from the origin account.',
+            '',
+            "If the origin's account ends up below the existential deposit as a result",
+            'of the burn and `keep_alive` is false, the account will be reaped.',
+            '',
+            'Unlike sending funds to a _burn_ address, which merely makes the funds inaccessible,',
+            'this `burn` operation will reduce total issuance by the amount _burned_.'
+          ],
+          args: [
+            { name: 'value', type: 'Compact<u128>', typeName: 'Balance' },
+            { name: 'keepAlive', type: 'bool', typeName: 'bool' }
+          ]
+        }
+        ```
+      */
       const args = metaArgs.map((a) => {
-        const typeStr = describeArg(api, { name: a.name.toString(), type: a.type });
+        console.log(a.type);
+        const typeStr = describeArg(api, a);
         return typeStr;
       });
-
-      console.log(args);
 
       entries.push({
         enumName: sanitize(`${section}_${method}`),
