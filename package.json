@@ -7,6 +7,7 @@
   "scripts": {
     "generate": "npx tsx ./src/cli.ts",
     "prettier": "prettier --write .",
+    "prettier:check": "prettier .",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"
   },
@@ -15,6 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@polkadot/api": "^16.4.5",
+    "@polkadot/types-create": "^16.4.5",
     "commander": "^14.0.0"
   },
   "devDependencies": {
