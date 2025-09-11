@@ -1,73 +1,62 @@
-import { Command } from 'commander';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import fs from 'fs';
+import { Command } from 'commander';
+import fs from 'node:fs';
+import { copyFile } from 'node:fs/promises';
+import path from 'node:path';
 
-import { DEFAULT_CONTRACT, DEFAULT_SOLC, DEFAULT_WS } from './types';
-import { ensureDirForFile, sanitize } from './helpers';
-import { collectPalletCalls, generateSolidity } from './core';
-
+import { getEntries } from './entries';
+import { getCallEncoderContract } from './callEncoder';
+import { ensureWritePathValid, sanitize } from './helpers';
 
 const program = new Command()
-  .name('generate-xcm-interface')
-  .description("Generate a Solidity enum + indices() mapping for selected pallets' calls.")
-  .argument(
-    '<pallets...>',
-    'Pallet names to include (case-insensitive), e.g. Balances System Utility',
-  )
-  .option('--ws <url>', 'WebSocket endpoint', DEFAULT_WS)
-  .option('-o, --out <file>', 'Output .sol file path')
-  .option('-c, --contract <name>', 'Contract name', DEFAULT_CONTRACT)
-  .option('--solc <version>', 'Solidity pragma version', DEFAULT_SOLC);
+  .option('--ws <url>', 'WebSocket endpoint', 'wss://westend-asset-hub-rpc.polkadot.io')
+  .option('--out-dir <dir>', 'Output contracts directory', 'contracts')
+  .option('--contract <name>', 'Encoder contract name', 'CallEncoders')
+  .argument('<pallets...>', 'Pallet names to include (e.g. Balances System)');
+
+export type Opts = {
+  ws: string;
+  outDir: string;
+  contract: string;
+};
 
 async function main() {
   const parsed = program.parse(process.argv);
-  const palletsArg = (parsed.args as string[]).map((s) => s.toLowerCase());
-  const opts = parsed.opts<{
-    ws: string;
-    out?: string;
-    contract: string;
-    solc: string;
-    json?: string;
-  }>();
+  const opts = parsed.opts<Opts>();
+  const pallets = (parsed.args as string[]).map((x) => x.toLowerCase());
 
-  const contract = sanitize(opts.contract || DEFAULT_CONTRACT);
-
-  if (!palletsArg.length) {
-    program.error('Please provide at least one pallet name.');
+  if (!pallets.length) {
+    program.error('Provide at least one pallet.');
   }
 
   const api = await ApiPromise.create({ provider: new WsProvider(opts.ws) });
   try {
-    const chain = (await api.rpc.system.chain()).toString();
-    const specName = api.runtimeVersion.specName.toString();
-    const specVersion = api.runtimeVersion.specVersion.toNumber();
+    const entries = await getEntries(api, pallets);
 
-    const entries = await collectPalletCalls(api, palletsArg);
-
-    if (entries.length === 0) {
-      console.error('❌ No matching calls found. Check pallet names.');
+    if (!entries.length) {
+      console.error('❌ No matching calls found.');
       process.exit(1);
     }
 
-    const solidity = generateSolidity({
-      chain,
-      specName,
-      specVersion,
-      ws: opts.ws,
-      contract,
-      solc: opts.solc,
-      entries,
-      palletsLower: palletsArg,
-    });
-
-    const outFile = opts.out ?? `${sanitize(contract)}_${sanitize(specName)}_v${specVersion}.sol`;
-
-    ensureDirForFile(outFile);
-    fs.writeFileSync(outFile, solidity);
-
-    console.log(
-      `✅ Wrote ${outFile} (${entries.length} calls) from pallets: ${palletsArg.join(', ')}`,
+    entries.sort(
+      (a, b) =>
+        a.palletIndex - b.palletIndex ||
+        a.callIndex - b.callIndex
     );
+
+    const callEncoderContract = await getCallEncoderContract(api, opts, entries);
+
+    // write files
+    const encodersOutPath = path.join(opts.outDir, `${sanitize(opts.contract)}.sol`);
+    const scaleCodecOutPath = path.join(opts.outDir, 'ScaleCodec.sol');
+    ensureWritePathValid(encodersOutPath);
+    ensureWritePathValid(scaleCodecOutPath);
+    fs.writeFileSync(encodersOutPath, callEncoderContract);
+    copyFile('src/contracts/ScaleCodec.sol', scaleCodecOutPath, 0);
+
+    console.log(`✅ Wrote:
+ - ${encodersOutPath}
+ - ${scaleCodecOutPath}`);
   } finally {
     await api.disconnect();
   }
