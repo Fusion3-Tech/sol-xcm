@@ -2,6 +2,7 @@ export type ArgDesc = {
   name: string;
   rawType: string;
   classifiedType: ArgType;
+  complexDesc?: any;
 };
 
 export type ArgType =
@@ -16,7 +17,6 @@ export type ArgType =
   | 'U128'
   | 'Bytes'
   | 'Bool'
-  | 'EnumUnit'
-  | 'EnumData'
+  | 'Complex'
   | 'Option'
   | 'Unsupported';

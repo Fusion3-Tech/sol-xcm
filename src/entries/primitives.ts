@@ -1,4 +1,4 @@
-import { ArgType } from "./types";
+import { ArgType } from './types';
 
 export function classifyPrimitive(type: string): ArgType {
   const t = type.replace(/\s/g, '').toLowerCase();

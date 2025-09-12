@@ -38,11 +38,7 @@ async function main() {
       process.exit(1);
     }
 
-    entries.sort(
-      (a, b) =>
-        a.palletIndex - b.palletIndex ||
-        a.callIndex - b.callIndex
-    );
+    entries.sort((a, b) => a.palletIndex - b.palletIndex || a.callIndex - b.callIndex);
 
     const callEncoderContract = await getCallEncoderContract(api, opts, entries);
 

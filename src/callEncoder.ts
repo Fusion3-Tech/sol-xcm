@@ -21,12 +21,18 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entrie
     if (arg.classifiedType === 'CompactU32')
       return { sol: 'uint32', enc: `ScaleCodec.compactU32(${paramName})` };
     if (arg.classifiedType === 'U8') return { sol: 'uint8', enc: `ScaleCodec.u8(${paramName})` };
-    if (arg.classifiedType === 'U16') return { sol: 'uint16', enc: `ScaleCodec.u16LE(${paramName})` };
-    if (arg.classifiedType === 'U32') return { sol: 'uint32', enc: `ScaleCodec.u32LE(${paramName})` };
-    if (arg.classifiedType === 'U64') return { sol: 'uint64', enc: `ScaleCodec.u64LE(${paramName})` };
-    if (arg.classifiedType === 'U128') return { sol: 'uint128', enc: `ScaleCodec.u128LE(${paramName})` };
-    if (arg.classifiedType === 'Bytes') return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
-    if (arg.classifiedType === 'Bool') return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
+    if (arg.classifiedType === 'U16')
+      return { sol: 'uint16', enc: `ScaleCodec.u16LE(${paramName})` };
+    if (arg.classifiedType === 'U32')
+      return { sol: 'uint32', enc: `ScaleCodec.u32LE(${paramName})` };
+    if (arg.classifiedType === 'U64')
+      return { sol: 'uint64', enc: `ScaleCodec.u64LE(${paramName})` };
+    if (arg.classifiedType === 'U128')
+      return { sol: 'uint128', enc: `ScaleCodec.u128LE(${paramName})` };
+    if (arg.classifiedType === 'Bytes')
+      return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
+    if (arg.classifiedType === 'Bool')
+      return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
     return null;
   }
 
