@@ -20,9 +20,6 @@ function resolveComplexType(api: ApiPromise, a: any): any {
   const typeDef = api.registry.lookup.getTypeDef(a.type);
   // call this from the contract writing code, here we just store it as object.
   const type = JSON.parse(typeDef.type);
-  if (type._enum) {
-    console.log(generateSolidityEnum(typeDef.lookupName || 'Unknown', typeDef.type));
-  }
   return type;
 }
 
@@ -36,7 +33,6 @@ export function describeArg(api: ApiPromise, a: any): ArgDesc {
       name,
       rawType: type,
       classifiedType: 'Complex',
-      // complexDesc: JSON.parse(typeDef.type),
       complexDesc: typeDef,
     };
     console.log(argDesc);

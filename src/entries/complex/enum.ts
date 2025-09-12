@@ -100,7 +100,6 @@ export function generateSolidityEnum(typeName: string, json: string | EnumJson):
     .join('\n');
 
   return `// Auto-generated from Substrate enum ${typeName}
-pragma solidity ^0.8.20;
 
 enum ${enumName} {
 ${enumBody}

@@ -5,6 +5,33 @@ pragma solidity ^0.8.24;
 import "./ScaleCodec.sol";
 import "./CallEncoders.sol";
 
+// Auto-generated from Substrate enum PalletBalancesAdjustmentDirection
+
+enum PalletBalancesAdjustmentDirection {
+    Increase,
+    Decrease
+}
+
+library PalletBalancesAdjustmentDirectionCodec {
+    // SCALE encode: variant index as a single byte (<= 256 variants)
+    function encode(PalletBalancesAdjustmentDirection v) internal pure returns (bytes memory) {
+        return abi.encodePacked(uint8(toIndex(v)));
+    }
+
+    function toIndex(PalletBalancesAdjustmentDirection v) internal pure returns (uint8) {
+        if (v == PalletBalancesAdjustmentDirection.Increase) return 0;
+        if (v == PalletBalancesAdjustmentDirection.Decrease) return 1;
+        revert("Invalid enum value");
+    }
+
+    function fromIndex(uint8 i) internal pure returns (PalletBalancesAdjustmentDirection v) {
+        if (i == 0) return PalletBalancesAdjustmentDirection.Increase;
+        if (i == 1) return PalletBalancesAdjustmentDirection.Decrease;
+        revert("Invalid enum index");
+    }
+}
+
+
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library CallEncoders {
     /// @notice balances.transferAllowDeath
@@ -70,7 +97,14 @@ library CallEncoders {
         );
     }
 
-    // Skipped balances.forceAdjustTotalIssuance: unsupported arg types: direction:PalletBalancesAdjustmentDirection, delta:Compact<u128>
+    /// @notice balances.forceAdjustTotalIssuance
+    function balances_forceAdjustTotalIssuance(PalletBalancesAdjustmentDirection direction, uint128 delta) internal pure returns (bytes memory) {
+        return bytes.concat(
+            ScaleCodec.callIndex(10, 9),
+            PalletBalancesAdjustmentDirectionCodec.encode(direction),
+            ScaleCodec.compactU128(delta)
+        );
+    }
 
     /// @notice balances.burn
     function balances_burn(uint128 value, bool keep_alive) internal pure returns (bytes memory) {

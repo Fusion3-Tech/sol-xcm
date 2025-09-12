@@ -4,13 +4,14 @@ import { Entry } from './entries';
 import { sanitize } from './helpers';
 import { Opts } from './cli';
 import { ArgDesc } from './entries/types';
+import { generateSolidityEnum } from './entries/complex/enum';
 
 export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entries: Entry[]) {
   const chain = (await api.rpc.system.chain()).toString();
   const specName = api.runtimeVersion.specName.toString();
   const specVersion = api.runtimeVersion.specVersion.toNumber();
 
-  function solTypeAndEncoder(arg: ArgDesc, paramName: string): { sol: string; enc: string } | null {
+  function solTypeAndEncoder(arg: ArgDesc, paramName: string): { sol: string; enc: string } {
     // map supported kinds to (sol_type, encoder_call)
     if (arg.classifiedType === 'MultiAddressId32')
       return { sol: 'bytes32', enc: `ScaleCodec.multiAddressId32(${paramName})` };
@@ -33,7 +34,8 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entrie
       return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
     if (arg.classifiedType === 'Bool')
       return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
-    return null;
+    else
+      return { sol: arg.rawType, enc: `${arg.rawType}Codec.encode(${paramName})` }
   }
 
   function makeFnName(e: Entry): string {
@@ -43,28 +45,22 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entrie
   }
 
   const encoderFns: string[] = [];
+  const customCodecs: string[] = [];
   for (const e of entries) {
     const pieces: string[] = [];
     const params: string[] = [];
 
-    let supported = true;
     e.args.forEach((a, idx) => {
       const mapped = solTypeAndEncoder(a, sanitize(a.name));
-      if (!mapped) supported = false;
-      else {
-        params.push(`${mapped.sol} ${sanitize(a.name)}`);
-        pieces.push(mapped.enc);
-      }
-    });
 
-    if (!supported) {
-      encoderFns.push(
-        `    // Skipped ${e.section}.${e.method}: unsupported arg types: ${e.args
-          .map((a) => `${a.name}:${a.rawType}`)
-          .join(', ')}`,
-      );
-      continue;
-    }
+      if (a.complexDesc && a.complexDesc._enum) {
+        // console.log(generateSolidityEnum(a.rawType, a.complexDesc));
+        customCodecs.push(generateSolidityEnum(a.rawType, a.complexDesc));
+      }
+
+      params.push(`${mapped.sol} ${sanitize(a.name)}`);
+      pieces.push(mapped.enc);
+    });
 
     const fname = makeFnName(e);
     const body = pieces.length
@@ -88,6 +84,8 @@ pragma solidity ^0.8.24;
 
 import "./ScaleCodec.sol";
 import "./${sanitize(opts.contract)}.sol";
+
+${customCodecs.join('\n\n')}
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library ${sanitize(opts.contract)} {
