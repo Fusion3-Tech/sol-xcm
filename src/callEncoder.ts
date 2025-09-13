@@ -5,6 +5,7 @@ import { sanitize } from './helpers';
 import { Opts } from './cli';
 import { ArgDesc } from './entries/types';
 import { generateSolidityEnum } from './entries/complex/enum';
+import { generateSolidityStruct } from './entries/complex/struct';
 
 export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entries: Entry[]) {
   const chain = (await api.rpc.system.chain()).toString();
@@ -34,8 +35,7 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entrie
       return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
     if (arg.classifiedType === 'Bool')
       return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
-    else
-      return { sol: arg.rawType, enc: `${arg.rawType}Codec.encode(${paramName})` }
+    else return { sol: arg.rawType, enc: `${arg.rawType}Codec.encode(${paramName})` };
   }
 
   function makeFnName(e: Entry): string {
@@ -46,16 +46,22 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entrie
 
   const encoderFns: string[] = [];
   const customCodecs: string[] = [];
+  const typesGenerated: string[] = [];
   for (const e of entries) {
     const pieces: string[] = [];
     const params: string[] = [];
 
     e.args.forEach((a, idx) => {
       const mapped = solTypeAndEncoder(a, sanitize(a.name));
-
-      if (a.complexDesc && a.complexDesc._enum) {
-        // console.log(generateSolidityEnum(a.rawType, a.complexDesc));
-        customCodecs.push(generateSolidityEnum(a.rawType, a.complexDesc));
+      if (a.complexDesc && !typesGenerated.find((t) => t === a.rawType)) {
+        // TODO: avoid double generation.
+        if (a.complexDesc._enum) {
+          customCodecs.push(generateSolidityEnum(a.rawType, a.complexDesc));
+          typesGenerated.push(a.rawType);
+        } else {
+          customCodecs.push(generateSolidityStruct(a.rawType, a.complexDesc));
+          typesGenerated.push(a.rawType);
+        }
       }
 
       params.push(`${mapped.sol} ${sanitize(a.name)}`);
@@ -85,7 +91,7 @@ pragma solidity ^0.8.24;
 import "./ScaleCodec.sol";
 import "./${sanitize(opts.contract)}.sol";
 
-${customCodecs.join('\n\n')}
+${customCodecs.join('\n')}
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library ${sanitize(opts.contract)} {

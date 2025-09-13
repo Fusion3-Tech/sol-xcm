@@ -28,7 +28,10 @@ export function describeArg(api: ApiPromise, a: any): ArgDesc {
   const type = resolvePrimitiveType(api, a);
   if (classifyPrimitive(type) === 'Unsupported') {
     // if not primitive:
-    const typeDef = resolveComplexType(api, a);
+    let typeDef;
+    try {
+      typeDef = resolveComplexType(api, a);
+    } catch (e) {}
     const argDesc: ArgDesc = {
       name,
       rawType: type,
