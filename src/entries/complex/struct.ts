@@ -1,6 +1,6 @@
 import { RESERVED, toIdent } from './common';
 
-type StructShape = { _struct: Record<string, string> } | Record<string, string>; // e.g. { parents: 'u8', interior: 'StagingXcmV5Junctions' }
+type StructShape = { _struct: Record<string, string> } | Record<string, string>;
 
 function isStructShape(x: any): x is StructShape {
   if (x && typeof x === 'object' && !Array.isArray(x)) {
@@ -26,7 +26,7 @@ function toVarIdent(x: string): string {
 }
 
 /** Map registry/alias names to Solidity *field types* used inside the struct. */
-function solidityFieldTypeOf(typeRef: string): string {
+function solidityFieldTypeOf(typeRef: string): [string, 'primitive' | 'complex'] {
   const t = typeRef.replace(/\s+/g, '');
   const PRIMS: Record<string, string> = {
     // unsigned
@@ -54,11 +54,11 @@ function solidityFieldTypeOf(typeRef: string): string {
     string: 'string',
   };
 
-  if (PRIMS[t]) return PRIMS[t];
-  if (/^Vec<u8>$/.test(t)) return 'bytes';
-  if (/^\[u8;[0-9]+\]$/.test(t)) return 'bytes'; // fixed-size byte-array from metadata → bytes (simplest)
+  if (PRIMS[t]) return [PRIMS[t], 'primitive'];
+  if (/^Vec<u8>$/.test(t)) return ['bytes', 'primitive'];
+  if (/^\[u8;[0-9]+\]$/.test(t)) return ['bytes', 'primitive']; // fixed-size byte-array from metadata → bytes (simplest)
   // Fallback: user-defined type (enum/struct/tuple wrapper). Keep as type name.
-  return toIdent(typeRef);
+  return [toIdent(typeRef), 'complex'];
 }
 
 /** Which codec library to call for a field when encoding. */
@@ -100,8 +100,7 @@ function extractStructFields(def: StructShape): { name: string; typeRef: string 
   return Object.entries(rec).map(([k, v]) => ({ name: toVarIdent(k), typeRef: v as string }));
 }
 
-export function generateSolidityStruct(typeName: string, json: string | StructShape): string {
-  const def = typeof json === 'string' ? JSON.parse(json) : json;
+export function generateSolidityStruct(typeName: string, def: StructShape): string {
   if (!isStructShape(def))
     throw new Error('Not a struct JSON (expected {_struct:{...}} or plain {field:type})');
 
@@ -109,7 +108,12 @@ export function generateSolidityStruct(typeName: string, json: string | StructSh
   const fields = extractStructFields(def);
 
   const structBody = fields
-    .map(({ name, typeRef }) => `    ${solidityFieldTypeOf(typeRef)} ${name};`)
+    .map(({ name, typeRef }) => {
+      if (solidityFieldTypeOf(typeRef)[1] === 'complex') {
+        // generateSolidityStruct(name, )
+      }
+      return `    ${solidityFieldTypeOf(typeRef)[0]} ${name};`;
+    })
     .join('\n');
 
   const encodeArgs = fields

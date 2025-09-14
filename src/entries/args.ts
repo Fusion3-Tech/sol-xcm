@@ -1,29 +1,17 @@
 import { ApiPromise } from '@polkadot/api';
 import { ArgDesc } from './types';
 import { classifyPrimitive } from './primitives';
-import { generateSolidityEnum } from './complex/enum';
+import { resolvePrimitiveType } from './common';
+import { Arg } from '.';
 
-function isLookupLike(raw: string) {
-  return /^\d+$/.test(raw) || raw.startsWith('Lookup');
-}
-
-function resolvePrimitiveType(api: ApiPromise, arg: any): string {
-  const raw = arg.type?.toString?.() ?? String(arg.type);
-  if (isLookupLike(raw)) {
-    const def = api.registry.lookup.getTypeDef(arg.type);
-    return (def.lookupName || def.type || 'Unknown').toString();
-  }
-  return raw;
-}
-
-function resolveComplexType(api: ApiPromise, a: any): any {
-  const typeDef = api.registry.lookup.getTypeDef(a.type);
+function resolveComplexType(api: ApiPromise, a: Arg): string {
+  const typeDef = api.registry.lookup.getTypeDef(a.lookupId);
   // call this from the contract writing code, here we just store it as object.
   const type = JSON.parse(typeDef.type);
   return type;
 }
 
-export function describeArg(api: ApiPromise, a: any): ArgDesc {
+export function describeArg(api: ApiPromise, a: Arg): ArgDesc {
   const name = a.name.toString();
   const type = resolvePrimitiveType(api, a);
   if (classifyPrimitive(type) === 'Unsupported') {
@@ -38,7 +26,6 @@ export function describeArg(api: ApiPromise, a: any): ArgDesc {
       classifiedType: 'Complex',
       complexDesc: typeDef,
     };
-    console.log(argDesc);
     return argDesc;
   }
 
