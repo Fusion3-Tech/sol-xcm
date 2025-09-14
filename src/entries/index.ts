@@ -8,7 +8,7 @@ import { classifyPrimitive } from './primitives';
 export type Arg = {
   name: string;
   lookupId: number;
-}
+};
 
 export type Entry = {
   entryName: string;
@@ -76,7 +76,7 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): ArgDesc[] {
       if (!typeDef) continue;
 
       const primKind = classifyPrimitive(
-        resolvePrimitiveType(api, { name: typeDef.def.lookupName || '', lookupId: typeDef.id })
+        resolvePrimitiveType(api, { name: typeDef.def.lookupName || '', lookupId: typeDef.id }),
       );
 
       if (primKind !== 'Unsupported') {

@@ -8,7 +8,12 @@ import { generateSolidityEnum } from './entries/complex/enum';
 import { generateSolidityStruct } from './entries/complex/struct';
 import { describeArg } from './entries/args';
 
-export async function getCallEncoderContract(api: ApiPromise, opts: Opts, customTypes: ArgDesc[], entries: Entry[]) {
+export async function getCallEncoderContract(
+  api: ApiPromise,
+  opts: Opts,
+  customTypes: ArgDesc[],
+  entries: Entry[],
+) {
   const chain = (await api.rpc.system.chain()).toString();
   const specName = api.runtimeVersion.specName.toString();
   const specVersion = api.runtimeVersion.specVersion.toNumber();
@@ -49,7 +54,7 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, custom
   const customCodecs: string[] = [];
   const typesGenerated: string[] = [];
 
-  customTypes.forEach(customType => {
+  customTypes.forEach((customType) => {
     if (customType.complexDesc._enum) {
       customCodecs.push(generateSolidityEnum(customType.rawType, customType.complexDesc));
       typesGenerated.push(customType.rawType);
