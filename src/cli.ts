@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { getEntries } from './entries';
+import { extractAllTypes, getEntries } from './entries';
 import { getCallEncoderContract } from './callEncoder';
 import { ensureWritePathValid, sanitize } from './helpers';
 
@@ -31,6 +31,8 @@ async function main() {
 
   const api = await ApiPromise.create({ provider: new WsProvider(opts.ws) });
   try {
+    const customTypes = extractAllTypes(api, pallets);
+    console.log(JSON.stringify(customTypes));
     const entries = await getEntries(api, pallets);
 
     if (!entries.length) {
@@ -40,7 +42,7 @@ async function main() {
 
     entries.sort((a, b) => a.palletIndex - b.palletIndex || a.callIndex - b.callIndex);
 
-    const callEncoderContract = await getCallEncoderContract(api, opts, entries);
+    const callEncoderContract = await getCallEncoderContract(api, opts, customTypes, entries);
 
     // write files
     const encodersOutPath = path.join(opts.outDir, `${sanitize(opts.contract)}.sol`);

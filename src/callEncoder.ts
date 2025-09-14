@@ -6,8 +6,9 @@ import { Opts } from './cli';
 import { ArgDesc } from './entries/types';
 import { generateSolidityEnum } from './entries/complex/enum';
 import { generateSolidityStruct } from './entries/complex/struct';
+import { describeArg } from './entries/args';
 
-export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entries: Entry[]) {
+export async function getCallEncoderContract(api: ApiPromise, opts: Opts, customTypes: ArgDesc[], entries: Entry[]) {
   const chain = (await api.rpc.system.chain()).toString();
   const specName = api.runtimeVersion.specName.toString();
   const specVersion = api.runtimeVersion.specVersion.toNumber();
@@ -47,22 +48,23 @@ export async function getCallEncoderContract(api: ApiPromise, opts: Opts, entrie
   const encoderFns: string[] = [];
   const customCodecs: string[] = [];
   const typesGenerated: string[] = [];
+
+  customTypes.forEach(customType => {
+    if (customType.complexDesc._enum) {
+      customCodecs.push(generateSolidityEnum(customType.rawType, customType.complexDesc));
+      typesGenerated.push(customType.rawType);
+    } else {
+      customCodecs.push(generateSolidityStruct(customType.rawType, customType.complexDesc));
+      typesGenerated.push(customType.rawType);
+    }
+  });
+
   for (const e of entries) {
     const pieces: string[] = [];
     const params: string[] = [];
 
     e.args.forEach((a, idx) => {
       const mapped = solTypeAndEncoder(a, sanitize(a.name));
-      if (a.complexDesc && !typesGenerated.find((t) => t === a.rawType)) {
-        // TODO: avoid double generation.
-        if (a.complexDesc._enum) {
-          customCodecs.push(generateSolidityEnum(a.rawType, a.complexDesc));
-          typesGenerated.push(a.rawType);
-        } else {
-          customCodecs.push(generateSolidityStruct(a.rawType, a.complexDesc));
-          typesGenerated.push(a.rawType);
-        }
-      }
 
       params.push(`${mapped.sol} ${sanitize(a.name)}`);
       pieces.push(mapped.enc);

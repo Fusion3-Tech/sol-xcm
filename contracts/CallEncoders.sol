@@ -5,134 +5,136 @@ pragma solidity ^0.8.24;
 import "./ScaleCodec.sol";
 import "./CallEncoders.sol";
 
-// Auto-generated from Substrate struct SpWeightsWeightV2Weight
+// Auto-generated from Substrate struct StagingXcmV5Location
 
-struct SpWeightsWeightV2Weight {
-    CompactU64 reftime;
-    CompactU64 proofsize;
+struct StagingXcmV5Location {
+    uint8 parents;
+    StagingXcmV5Junctions interior;
 }
 
-library SpWeightsWeightV2WeightCodec {
+library StagingXcmV5LocationCodec {
     // SCALE encode: concatenate field encodings in declaration order
-    function encode(SpWeightsWeightV2Weight memory s) internal pure returns (bytes memory) {
-        return abi.encodePacked(CompactU64Codec.encode(s.reftime), CompactU64Codec.encode(s.proofsize));
+    function encode(StagingXcmV5Location memory s) internal pure returns (bytes memory) {
+        return abi.encodePacked(U8Codec.encode(s.parents), StagingXcmV5JunctionsCodec.encode(s.interior));
+    }
+}
+
+// Auto-generated from Substrate enum StagingXcmV5Junctions
+
+enum StagingXcmV5Junctions {
+    Here,
+    X1,
+    X2,
+    X3,
+    X4,
+    X5,
+    X6,
+    X7,
+    X8
+}
+
+library StagingXcmV5JunctionsCodec {
+    // SCALE encode: variant index as a single byte (<= 256 variants)
+    function encode(StagingXcmV5Junctions v) internal pure returns (bytes memory) {
+        return abi.encodePacked(uint8(toIndex(v)));
+    }
+
+    function toIndex(StagingXcmV5Junctions v) internal pure returns (uint8) {
+        if (v == StagingXcmV5Junctions.Here) return 0;
+        if (v == StagingXcmV5Junctions.X1) return 1;
+        if (v == StagingXcmV5Junctions.X2) return 2;
+        if (v == StagingXcmV5Junctions.X3) return 3;
+        if (v == StagingXcmV5Junctions.X4) return 4;
+        if (v == StagingXcmV5Junctions.X5) return 5;
+        if (v == StagingXcmV5Junctions.X6) return 6;
+        if (v == StagingXcmV5Junctions.X7) return 7;
+        if (v == StagingXcmV5Junctions.X8) return 8;
+        revert("Invalid enum value");
+    }
+
+    function fromIndex(uint8 i) internal pure returns (StagingXcmV5Junctions v) {
+        if (i == 0) return StagingXcmV5Junctions.Here;
+        if (i == 1) return StagingXcmV5Junctions.X1;
+        if (i == 2) return StagingXcmV5Junctions.X2;
+        if (i == 3) return StagingXcmV5Junctions.X3;
+        if (i == 4) return StagingXcmV5Junctions.X4;
+        if (i == 5) return StagingXcmV5Junctions.X5;
+        if (i == 6) return StagingXcmV5Junctions.X6;
+        if (i == 7) return StagingXcmV5Junctions.X7;
+        if (i == 8) return StagingXcmV5Junctions.X8;
+        revert("Invalid enum index");
     }
 }
 
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library CallEncoders {
-    /// @notice revive.ethTransact
-    function revive_ethTransact(bytes memory payload) internal pure returns (bytes memory) {
+    /// @notice assetConversion.createPool
+    function assetConversion_createPool(StagingXcmV5Location asset1, StagingXcmV5Location asset2) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(60, 0),
-            ScaleCodec.vecU8(payload)
+            ScaleCodec.callIndex(56, 0),
+            StagingXcmV5LocationCodec.encode(asset1),
+            StagingXcmV5LocationCodec.encode(asset2)
         );
     }
 
-    /// @notice revive.call
-    function revive_call(H160 dest, uint128 value, SpWeightsWeightV2Weight gas_limit, uint128 storage_deposit_limit, bytes memory data) internal pure returns (bytes memory) {
+    /// @notice assetConversion.addLiquidity
+    function assetConversion_addLiquidity(StagingXcmV5Location asset1, StagingXcmV5Location asset2, uint128 amount1_desired, uint128 amount2_desired, uint128 amount1_min, uint128 amount2_min, bytes32 mint_to) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(60, 1),
-            H160Codec.encode(dest),
-            ScaleCodec.compactU128(value),
-            SpWeightsWeightV2WeightCodec.encode(gas_limit),
-            ScaleCodec.compactU128(storage_deposit_limit),
-            ScaleCodec.vecU8(data)
+            ScaleCodec.callIndex(56, 1),
+            StagingXcmV5LocationCodec.encode(asset1),
+            StagingXcmV5LocationCodec.encode(asset2),
+            ScaleCodec.u128LE(amount1_desired),
+            ScaleCodec.u128LE(amount2_desired),
+            ScaleCodec.u128LE(amount1_min),
+            ScaleCodec.u128LE(amount2_min),
+            ScaleCodec.u128LE(uint128(uint256(mint_to)))
         );
     }
 
-    /// @notice revive.instantiate
-    function revive_instantiate(uint128 value, SpWeightsWeightV2Weight gas_limit, uint128 storage_deposit_limit, H256 code_hash, bytes memory data, Option<[u8;32]> salt) internal pure returns (bytes memory) {
+    /// @notice assetConversion.removeLiquidity
+    function assetConversion_removeLiquidity(StagingXcmV5Location asset1, StagingXcmV5Location asset2, uint128 lp_token_burn, uint128 amount1_min_receive, uint128 amount2_min_receive, bytes32 withdraw_to) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(60, 2),
-            ScaleCodec.compactU128(value),
-            SpWeightsWeightV2WeightCodec.encode(gas_limit),
-            ScaleCodec.compactU128(storage_deposit_limit),
-            H256Codec.encode(code_hash),
-            ScaleCodec.vecU8(data),
-            Option<[u8;32]>Codec.encode(salt)
+            ScaleCodec.callIndex(56, 2),
+            StagingXcmV5LocationCodec.encode(asset1),
+            StagingXcmV5LocationCodec.encode(asset2),
+            ScaleCodec.u128LE(lp_token_burn),
+            ScaleCodec.u128LE(amount1_min_receive),
+            ScaleCodec.u128LE(amount2_min_receive),
+            ScaleCodec.u128LE(uint128(uint256(withdraw_to)))
         );
     }
 
-    /// @notice revive.instantiateWithCode
-    function revive_instantiateWithCode(uint128 value, SpWeightsWeightV2Weight gas_limit, uint128 storage_deposit_limit, bytes memory code, bytes memory data, Option<[u8;32]> salt) internal pure returns (bytes memory) {
+    /// @notice assetConversion.swapExactTokensForTokens
+    function assetConversion_swapExactTokensForTokens(Vec<StagingXcmV5Location> path, uint128 amount_in, uint128 amount_out_min, bytes32 send_to, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(60, 3),
-            ScaleCodec.compactU128(value),
-            SpWeightsWeightV2WeightCodec.encode(gas_limit),
-            ScaleCodec.compactU128(storage_deposit_limit),
-            ScaleCodec.vecU8(code),
-            ScaleCodec.vecU8(data),
-            Option<[u8;32]>Codec.encode(salt)
+            ScaleCodec.callIndex(56, 3),
+            Vec<StagingXcmV5Location>Codec.encode(path),
+            ScaleCodec.u128LE(amount_in),
+            ScaleCodec.u128LE(amount_out_min),
+            ScaleCodec.u128LE(uint128(uint256(send_to))),
+            ScaleCodec.boolean(keep_alive)
         );
     }
 
-    /// @notice revive.uploadCode
-    function revive_uploadCode(bytes memory code, uint128 storage_deposit_limit) internal pure returns (bytes memory) {
+    /// @notice assetConversion.swapTokensForExactTokens
+    function assetConversion_swapTokensForExactTokens(Vec<StagingXcmV5Location> path, uint128 amount_out, uint128 amount_in_max, bytes32 send_to, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(60, 4),
-            ScaleCodec.vecU8(code),
-            ScaleCodec.compactU128(storage_deposit_limit)
+            ScaleCodec.callIndex(56, 4),
+            Vec<StagingXcmV5Location>Codec.encode(path),
+            ScaleCodec.u128LE(amount_out),
+            ScaleCodec.u128LE(amount_in_max),
+            ScaleCodec.u128LE(uint128(uint256(send_to))),
+            ScaleCodec.boolean(keep_alive)
         );
     }
 
-    /// @notice revive.removeCode
-    function revive_removeCode(H256 code_hash) internal pure returns (bytes memory) {
+    /// @notice assetConversion.touch
+    function assetConversion_touch(StagingXcmV5Location asset1, StagingXcmV5Location asset2) internal pure returns (bytes memory) {
         return bytes.concat(
-            ScaleCodec.callIndex(60, 5),
-            H256Codec.encode(code_hash)
-        );
-    }
-
-    /// @notice revive.setCode
-    function revive_setCode(H160 dest, H256 code_hash) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(60, 6),
-            H160Codec.encode(dest),
-            H256Codec.encode(code_hash)
-        );
-    }
-
-    /// @notice revive.mapAccount
-    function revive_mapAccount() internal pure returns (bytes memory) {
-        return ScaleCodec.callIndex(60, 7);
-    }
-
-    /// @notice revive.unmapAccount
-    function revive_unmapAccount() internal pure returns (bytes memory) {
-        return ScaleCodec.callIndex(60, 8);
-    }
-
-    /// @notice revive.dispatchAsFallbackAccount
-    function revive_dispatchAsFallbackAccount(Call call) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(60, 9),
-            CallCodec.encode(call)
-        );
-    }
-
-    /// @notice revive.ethInstantiateWithCode
-    function revive_ethInstantiateWithCode(U256 value, SpWeightsWeightV2Weight gas_limit, uint128 storage_deposit_limit, bytes memory code, bytes memory data) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(60, 10),
-            U256Codec.encode(value),
-            SpWeightsWeightV2WeightCodec.encode(gas_limit),
-            ScaleCodec.compactU128(storage_deposit_limit),
-            ScaleCodec.vecU8(code),
-            ScaleCodec.vecU8(data)
-        );
-    }
-
-    /// @notice revive.ethCall
-    function revive_ethCall(H160 dest, U256 value, SpWeightsWeightV2Weight gas_limit, uint128 storage_deposit_limit, bytes memory data) internal pure returns (bytes memory) {
-        return bytes.concat(
-            ScaleCodec.callIndex(60, 11),
-            H160Codec.encode(dest),
-            U256Codec.encode(value),
-            SpWeightsWeightV2WeightCodec.encode(gas_limit),
-            ScaleCodec.compactU128(storage_deposit_limit),
-            ScaleCodec.vecU8(data)
+            ScaleCodec.callIndex(56, 5),
+            StagingXcmV5LocationCodec.encode(asset1),
+            StagingXcmV5LocationCodec.encode(asset2)
         );
     }
 }

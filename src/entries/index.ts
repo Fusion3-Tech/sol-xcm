@@ -22,8 +22,6 @@ export type Entry = {
 export async function getEntries(api: ApiPromise, pallets: string[]): Promise<Entry[]> {
   const entries: Entry[] = [];
 
-  extractAllTypes(api, pallets);
-
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
     if (!pallets.includes(section.toLowerCase())) continue;
     for (const [method, extrinsic] of Object.entries(sectionMethods)) {
@@ -49,12 +47,14 @@ export async function getEntries(api: ApiPromise, pallets: string[]): Promise<En
   return entries;
 }
 
-function extractAllTypes(api: ApiPromise, pallets: string[]) {
-  let types = Array<{ typeName: string; def: any }>();
+export function extractAllTypes(api: ApiPromise, pallets: string[]): ArgDesc[] {
+  const types: ArgDesc[] = [];
+
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
     if (!pallets.includes(section.toLowerCase())) continue;
-    for (const [_, extrinsic] of Object.entries(sectionMethods)) {
-      const metaArgs = extrinsic.toJSON().fields;
+
+    for (const [, extrinsic] of Object.entries(sectionMethods as Record<string, any>)) {
+      const metaArgs = (extrinsic as any).toJSON().fields;
       metaArgs.forEach((a: any) => {
         describe({ name: a.name, lookupId: a.type });
       });
@@ -63,22 +63,27 @@ function extractAllTypes(api: ApiPromise, pallets: string[]) {
 
   return types;
 
-  function describe(a: Arg) {
+  function describe(a: Arg): void {
     const arg = describeArg(api, a);
-    if (arg.complexDesc && !types.find((t) => t.typeName === arg.rawType)) {
-      types.push({ typeName: arg.rawType, def: arg.complexDesc });
 
-      for (const [field, typeRef] of Object.entries(arg.complexDesc)) {
-        const typeDef = findTypeByLookupName(api, typeRef as string);
-        if (!typeDef) continue;
-        if (classifyPrimitive(resolvePrimitiveType(api, { name: typeDef.def.lookupName || '', lookupId: typeDef.id })) !== 'Unsupported') {
-          console.log(`PRIMITIVE Field: ${field}: ${typeRef as string}`);
-        } else {
-          console.log(`COMPLEX Field: ${field}: ${typeRef as string}`);
+    if (!arg.complexDesc) return;
+    if (types.find((t) => t.rawType === arg.rawType)) return;
 
-          console.log({ name: typeDef.def.lookupName || '', lookupId: typeDef.id });
-          describe({ name: typeDef.def.lookupName || '', lookupId: typeDef.id })
-        }
+    types.push(arg);
+
+    for (const [field, typeRef] of Object.entries(arg.complexDesc)) {
+      const typeDef = findTypeByLookupName(api, typeRef as string);
+      if (!typeDef) continue;
+
+      const primKind = classifyPrimitive(
+        resolvePrimitiveType(api, { name: typeDef.def.lookupName || '', lookupId: typeDef.id })
+      );
+
+      if (primKind !== 'Unsupported') {
+        console.log(`PRIMITIVE Field: ${field}: ${typeRef as string}`);
+      } else {
+        console.log(`COMPLEX Field: ${field}: ${typeRef as string}`);
+        describe({ name: typeDef.def.lookupName || '', lookupId: typeDef.id });
       }
     }
   }
