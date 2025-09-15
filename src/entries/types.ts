@@ -17,6 +17,8 @@ export type ArgType =
   | 'U128'
   | 'Bytes'
   | 'Bool'
+  | 'FixedBytes'
+  | 'VecFixed'
   | 'Complex'
   | 'Option'
   | 'Unsupported';

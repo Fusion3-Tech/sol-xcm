@@ -2,6 +2,15 @@ import { ArgType } from './types';
 
 export function classifyPrimitive(type: string): ArgType {
   const t = type.replace(/\s/g, '').toLowerCase();
+
+  // fixed-size array: [elem;len]
+  const m = t.match(/^\[(.+);(\d+)\]$/);
+  if (m) {
+    const elem = m[1];
+    if (elem === 'u8') return 'FixedBytes'; // encode N raw bytes, no prefix
+    return 'VecFixed';                       // fixed array of non-primitive elements
+  }
+
   if (t.includes('multiaddress')) return 'MultiAddressId32';
   if (t.includes('accountid32') || t === 'accountid') return 'AccountId32';
   if (t.startsWith('compact<')) {

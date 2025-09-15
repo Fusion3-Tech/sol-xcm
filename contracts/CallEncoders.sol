@@ -66,6 +66,56 @@ library StagingXcmV5JunctionsCodec {
     }
 }
 
+// Auto-generated from Substrate enum StagingXcmV5Junction
+
+enum StagingXcmV5Junction {
+    Parachain,
+    AccountId32,
+    AccountIndex64,
+    AccountKey20,
+    PalletInstance,
+    GeneralIndex,
+    GeneralKey,
+    OnlyChild,
+    Plurality,
+    GlobalConsensus
+}
+
+library StagingXcmV5JunctionCodec {
+    // SCALE encode: variant index as a single byte (<= 256 variants)
+    function encode(StagingXcmV5Junction v) internal pure returns (bytes memory) {
+        return abi.encodePacked(uint8(toIndex(v)));
+    }
+
+    function toIndex(StagingXcmV5Junction v) internal pure returns (uint8) {
+        if (v == StagingXcmV5Junction.Parachain) return 0;
+        if (v == StagingXcmV5Junction.AccountId32) return 1;
+        if (v == StagingXcmV5Junction.AccountIndex64) return 2;
+        if (v == StagingXcmV5Junction.AccountKey20) return 3;
+        if (v == StagingXcmV5Junction.PalletInstance) return 4;
+        if (v == StagingXcmV5Junction.GeneralIndex) return 5;
+        if (v == StagingXcmV5Junction.GeneralKey) return 6;
+        if (v == StagingXcmV5Junction.OnlyChild) return 7;
+        if (v == StagingXcmV5Junction.Plurality) return 8;
+        if (v == StagingXcmV5Junction.GlobalConsensus) return 9;
+        revert("Invalid enum value");
+    }
+
+    function fromIndex(uint8 i) internal pure returns (StagingXcmV5Junction v) {
+        if (i == 0) return StagingXcmV5Junction.Parachain;
+        if (i == 1) return StagingXcmV5Junction.AccountId32;
+        if (i == 2) return StagingXcmV5Junction.AccountIndex64;
+        if (i == 3) return StagingXcmV5Junction.AccountKey20;
+        if (i == 4) return StagingXcmV5Junction.PalletInstance;
+        if (i == 5) return StagingXcmV5Junction.GeneralIndex;
+        if (i == 6) return StagingXcmV5Junction.GeneralKey;
+        if (i == 7) return StagingXcmV5Junction.OnlyChild;
+        if (i == 8) return StagingXcmV5Junction.Plurality;
+        if (i == 9) return StagingXcmV5Junction.GlobalConsensus;
+        revert("Invalid enum index");
+    }
+}
+
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library CallEncoders {

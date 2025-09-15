@@ -65,6 +65,8 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): ArgDesc[] {
 
   function describe(a: Arg): void {
     const arg = describeArg(api, a);
+    console.log(arg);
+    // TODO: handle fixed size vector.
 
     if (!arg.complexDesc) return;
     if (types.find((t) => t.rawType === arg.rawType)) return;
@@ -84,6 +86,12 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): ArgDesc[] {
       } else {
         console.log(`COMPLEX Field: ${field}: ${typeRef as string}`);
         describe({ name: typeDef.def.lookupName || '', lookupId: typeDef.id });
+      }
+
+      if(typeDef.def.sub && typeDef.def.sub) {
+        (typeDef.def.sub as Array<any>).forEach(t => {
+          describe({name: t.name || '', lookupId: t.lookupIndex || t.index})
+        })
       }
     }
   }

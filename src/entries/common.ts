@@ -5,6 +5,15 @@ export function isLookupLike(raw: string) {
   return /^\d+$/.test(raw) || raw.startsWith('Lookup');
 }
 
+export function extractLookupId(raw: string): number | null {
+  const s = raw.trim();
+  if (!isLookupLike(s)) return null;
+
+  if (/^\d+$/.test(s)) return Number(s);            // e.g. "62"
+  const m = /^Lookup(\d+)$/i.exec(s);               // e.g. "Lookup62"
+  return m ? Number(m[1]) : null;
+}
+
 export function resolvePrimitiveType(api: ApiPromise, arg: Arg): string {
   const raw = arg.lookupId.toString();
   if (isLookupLike(raw)) {
