@@ -1,8 +1,8 @@
 import { ApiPromise } from '@polkadot/api';
 import { sanitize } from '../helpers';
-import { ArgDesc } from './types';
 import { describeArg } from './args';
 import { TypeDesc } from '../typeDesc/types';
+import { ArgDesc } from './types';
 
 export type Arg = {
   name: string;
@@ -15,7 +15,7 @@ export type Entry = {
   method: string;
   palletIndex: number;
   callIndex: number;
-  args: TypeDesc[];
+  args: ArgDesc[];
 };
 
 export async function getEntries(api: ApiPromise, pallets: string[]): Promise<Entry[]> {

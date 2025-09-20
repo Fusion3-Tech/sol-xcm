@@ -1,23 +1,7 @@
-export type ArgDesc = {
-  name: string;
-  classifiedType: ArgType;
-  complexDesc?: any;
-};
+import { ClassifiedType } from "../typeDesc/types";
 
-export type ArgType =
-  | 'MultiAddressId32'
-  | 'AccountId32'
-  | 'CompactU128'
-  | 'CompactU32'
-  | 'U8'
-  | 'U16'
-  | 'U32'
-  | 'U64'
-  | 'U128'
-  | 'Bytes'
-  | 'Bool'
-  | 'FixedBytes'
-  | 'VecFixed'
-  | 'Complex'
-  | 'Option'
-  | 'Unsupported';
+export type ArgDesc = {
+  argName: string;
+  typeName: string;
+  argType: ClassifiedType;
+};

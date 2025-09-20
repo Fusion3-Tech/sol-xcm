@@ -18,35 +18,35 @@ export async function getCallEncoderContract(
   const specName = api.runtimeVersion.specName.toString();
   const specVersion = api.runtimeVersion.specVersion.toNumber();
 
-  function solTypeAndEncoder(arg: TypeDesc, paramName: string): { sol: string; enc: string } {
+  function solTypeAndEncoder(arg: ArgDesc, paramName: string): { sol: string; enc: string } {
     // map supported kinds to (sol_type, encoder_call)
-    if (arg.classifiedType === 'MultiAddressId32')
+    if (arg.argType === 'MultiAddressId32')
       return { sol: 'bytes32', enc: `ScaleCodec.multiAddressId32(${paramName})` };
-    if (arg.classifiedType === 'AccountId32')
+    if (arg.argType === 'AccountId32')
       return { sol: 'bytes32', enc: `ScaleCodec.u128LE(uint128(uint256(${paramName})))` }; // rarely used directly; adjust as needed
-    if (arg.classifiedType === 'CompactU128')
+    if (arg.argType === 'CompactU128')
       return { sol: 'uint128', enc: `ScaleCodec.compactU128(${paramName})` };
-    if (arg.classifiedType === 'CompactU32')
+    if (arg.argType === 'CompactU32')
       return { sol: 'uint32', enc: `ScaleCodec.compactU32(${paramName})` };
-    if (arg.classifiedType === 'U8') return { sol: 'uint8', enc: `ScaleCodec.u8(${paramName})` };
-    if (arg.classifiedType === 'U16')
+    if (arg.argType === 'U8') return { sol: 'uint8', enc: `ScaleCodec.u8(${paramName})` };
+    if (arg.argType === 'U16')
       return { sol: 'uint16', enc: `ScaleCodec.u16LE(${paramName})` };
-    if (arg.classifiedType === 'U32')
+    if (arg.argType === 'U32')
       return { sol: 'uint32', enc: `ScaleCodec.u32LE(${paramName})` };
-    if (arg.classifiedType === 'U64')
+    if (arg.argType === 'U64')
       return { sol: 'uint64', enc: `ScaleCodec.u64LE(${paramName})` };
-    if (arg.classifiedType === 'U128')
+    if (arg.argType === 'U128')
       return { sol: 'uint128', enc: `ScaleCodec.u128LE(${paramName})` };
-    if (arg.classifiedType === 'Bytes')
+    if (arg.argType === 'Bytes')
       return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
-    if (arg.classifiedType === 'Bool')
+    if (arg.argType === 'Bool')
       return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
-    else return { sol: arg.name, enc: `${arg.name}Codec.encode(${paramName})` };
+    else return { sol: arg.typeName, enc: `${arg.typeName}Codec.encode(${paramName})` };
   }
 
   function makeFnName(e: Entry): string {
     // e.g. balances_transferKeepAlive_id32 when first arg is MultiAddressId32
-    const suffix = e.args.length && e.args[0].classifiedType === 'MultiAddressId32' ? '_id32' : '';
+    const suffix = e.args.length && e.args[0].argType === 'MultiAddressId32' ? '_id32' : '';
     return `${e.section}_${e.method}${suffix}`;
   }
 
@@ -69,9 +69,9 @@ export async function getCallEncoderContract(
     const params: string[] = [];
 
     e.args.forEach((a, idx) => {
-      const mapped = solTypeAndEncoder(a, sanitize(a.name));
+      const mapped = solTypeAndEncoder(a, sanitize(a.argName));
 
-      params.push(`${mapped.sol} ${sanitize(a.name)}`);
+      params.push(`${mapped.sol} ${sanitize(a.argName)}`);
       pieces.push(mapped.enc);
     });
 
