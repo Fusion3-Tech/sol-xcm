@@ -15,10 +15,10 @@ function isStructShape(x: any): x is StructShape {
 function toVarIdent(x: string): string {
   // lowerCamelCase, strip non-alphanumerics, avoid leading digits & reserved words
   const cleaned = x.replace(/[^a-zA-Z0-9]+/g, ' ').trim();
-  let parts = cleaned.split(/\s+/).filter(Boolean);
+  const parts = cleaned.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return 'x';
-  let head = parts[0].toLowerCase();
-  let tail = parts.slice(1).map((s) => s[0]?.toUpperCase() + s.slice(1));
+  const head = parts[0].toLowerCase();
+  const tail = parts.slice(1).map((s) => s[0]?.toUpperCase() + s.slice(1));
   let out = head + tail.join('');
   if (/^[0-9]/.test(out)) out = '_' + out;
   if (RESERVED.has(out)) out = out + '_';

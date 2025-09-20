@@ -1,12 +1,12 @@
-import { ApiPromise } from '@polkadot/api';
+import { type ApiPromise } from '@polkadot/api';
 
-import { Entry } from './entries';
+import { type Entry } from './entries';
 import { sanitize } from './helpers';
-import { Opts } from './cli';
-import { ArgDesc } from './entries/types';
+import { type Opts } from './cli';
+import { type ArgDesc } from './entries/types';
 import { generateSolidityEnum } from './entries/complex/enum';
 import { generateSolidityStruct } from './entries/complex/struct';
-import { TypeDesc } from './typeDesc/types';
+import { type TypeDesc } from './typeDesc/types';
 
 export async function getCallEncoderContract(
   api: ApiPromise,

@@ -1,4 +1,4 @@
-import { ClassifiedType } from "../typeDesc/types";
+import { type ClassifiedType } from "../typeDesc/types";
 
 export type ArgDesc = {
   argName: string;

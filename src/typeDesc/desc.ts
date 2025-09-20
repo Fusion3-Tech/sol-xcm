@@ -1,5 +1,6 @@
-import { ApiPromise } from "@polkadot/api";
-import { ClassifiedType, TypeDesc } from "./types";
+import { type ApiPromise } from "@polkadot/api";
+
+import { type ClassifiedType, type TypeDesc } from "./types";
 import { parseFixedArray } from "./types/fixedArray";
 
 export type LookupId = number | `Lookup${number}`;

@@ -1,6 +1,7 @@
-import { ApiPromise } from "@polkadot/api";
-import { TypeDesc } from "./types";
-import { LookupId, classifyType, descType, findTypeByLookupName, resolvePrimitiveType } from "./desc";
+import { type ApiPromise } from "@polkadot/api";
+
+import { type TypeDesc } from "./types";
+import { type LookupId, classifyType, descType, findTypeByLookupName, resolvePrimitiveType } from "./desc";
 
 export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] {
   const types: TypeDesc[] = [];

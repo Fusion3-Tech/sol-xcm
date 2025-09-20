@@ -1,8 +1,8 @@
-import { ApiPromise } from '@polkadot/api';
+import { type ApiPromise } from '@polkadot/api';
+
 import { sanitize } from '../helpers';
 import { describeArg } from './args';
-import { TypeDesc } from '../typeDesc/types';
-import { ArgDesc } from './types';
+import { type ArgDesc } from './types';
 
 export type Arg = {
   name: string;
