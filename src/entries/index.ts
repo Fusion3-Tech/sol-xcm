@@ -2,8 +2,7 @@ import { ApiPromise } from '@polkadot/api';
 import { sanitize } from '../helpers';
 import { ArgDesc } from './types';
 import { describeArg } from './args';
-import { findTypeByLookupName, resolvePrimitiveType } from './common';
-import { classifyPrimitive } from './primitives';
+import { TypeDesc } from '../typeDesc/types';
 
 export type Arg = {
   name: string;
@@ -16,7 +15,7 @@ export type Entry = {
   method: string;
   palletIndex: number;
   callIndex: number;
-  args: ArgDesc[];
+  args: TypeDesc[];
 };
 
 export async function getEntries(api: ApiPromise, pallets: string[]): Promise<Entry[]> {
@@ -45,54 +44,4 @@ export async function getEntries(api: ApiPromise, pallets: string[]): Promise<En
   }
 
   return entries;
-}
-
-export function extractAllTypes(api: ApiPromise, pallets: string[]): ArgDesc[] {
-  const types: ArgDesc[] = [];
-
-  for (const [section, sectionMethods] of Object.entries(api.tx)) {
-    if (!pallets.includes(section.toLowerCase())) continue;
-
-    for (const [, extrinsic] of Object.entries(sectionMethods as Record<string, any>)) {
-      const metaArgs = (extrinsic as any).toJSON().fields;
-      metaArgs.forEach((a: any) => {
-        describe({ name: a.name, lookupId: a.type });
-      });
-    }
-  }
-
-  return types;
-
-  function describe(a: Arg): void {
-    const arg = describeArg(api, a);
-    console.log(arg);
-    // TODO: handle fixed size vector.
-
-    if (!arg.complexDesc) return;
-    if (types.find((t) => t.rawType === arg.rawType)) return;
-
-    types.push(arg);
-
-    for (const [field, typeRef] of Object.entries(arg.complexDesc)) {
-      const typeDef = findTypeByLookupName(api, typeRef as string);
-      if (!typeDef) continue;
-
-      const primKind = classifyPrimitive(
-        resolvePrimitiveType(api, { name: typeDef.def.lookupName || '', lookupId: typeDef.id }),
-      );
-
-      if (primKind !== 'Unsupported') {
-        console.log(`PRIMITIVE Field: ${field}: ${typeRef as string}`);
-      } else {
-        console.log(`COMPLEX Field: ${field}: ${typeRef as string}`);
-        describe({ name: typeDef.def.lookupName || '', lookupId: typeDef.id });
-      }
-
-      if(typeDef.def.sub && typeDef.def.sub) {
-        (typeDef.def.sub as Array<any>).forEach(t => {
-          describe({name: t.name || '', lookupId: t.lookupIndex || t.index})
-        })
-      }
-    }
-  }
 }

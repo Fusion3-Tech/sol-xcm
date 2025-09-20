@@ -13,7 +13,6 @@ function resolveComplexType(api: ApiPromise, a: Arg): string {
 }
 
 export function describeArg(api: ApiPromise, a: Arg): ArgDesc {
-  const name = a.name.toString();
   const type = resolvePrimitiveType(api, a);
 
   if(classifyPrimitive(type) === 'VecFixed') {
@@ -29,17 +28,15 @@ export function describeArg(api: ApiPromise, a: Arg): ArgDesc {
       let typeDef;
       try {
         typeDef = resolveComplexType(api, {lookupId, name: arrType });
-        console.log(typeDef)
       } catch (e) {}
       const argDesc: ArgDesc = {
-        name,
-        rawType:arrType,
+        name: arrType,
         classifiedType: 'Complex',
         complexDesc: typeDef,
       };
       return argDesc;
     }
-    return { name, rawType: arrType, classifiedType: classifyPrimitive(arrType) };
+    return { name: arrType, classifiedType: classifyPrimitive(arrType) };
   }
 
   if (classifyPrimitive(type) === 'Unsupported') {
@@ -49,13 +46,12 @@ export function describeArg(api: ApiPromise, a: Arg): ArgDesc {
       typeDef = resolveComplexType(api, a);
     } catch (e) {}
     const argDesc: ArgDesc = {
-      name,
-      rawType: type,
+      name: type,
       classifiedType: 'Complex',
       complexDesc: typeDef,
     };
     return argDesc;
   }
 
-  return { name, rawType: type, classifiedType: classifyPrimitive(type) };
+  return { name: type, classifiedType: classifyPrimitive(type) };
 }

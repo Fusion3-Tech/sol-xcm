@@ -6,19 +6,19 @@ import { Opts } from './cli';
 import { ArgDesc } from './entries/types';
 import { generateSolidityEnum } from './entries/complex/enum';
 import { generateSolidityStruct } from './entries/complex/struct';
-import { describeArg } from './entries/args';
+import { TypeDesc } from './typeDesc/types';
 
 export async function getCallEncoderContract(
   api: ApiPromise,
   opts: Opts,
-  customTypes: ArgDesc[],
+  customTypes: TypeDesc[],
   entries: Entry[],
 ) {
   const chain = (await api.rpc.system.chain()).toString();
   const specName = api.runtimeVersion.specName.toString();
   const specVersion = api.runtimeVersion.specVersion.toNumber();
 
-  function solTypeAndEncoder(arg: ArgDesc, paramName: string): { sol: string; enc: string } {
+  function solTypeAndEncoder(arg: TypeDesc, paramName: string): { sol: string; enc: string } {
     // map supported kinds to (sol_type, encoder_call)
     if (arg.classifiedType === 'MultiAddressId32')
       return { sol: 'bytes32', enc: `ScaleCodec.multiAddressId32(${paramName})` };
@@ -41,7 +41,7 @@ export async function getCallEncoderContract(
       return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
     if (arg.classifiedType === 'Bool')
       return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
-    else return { sol: arg.rawType, enc: `${arg.rawType}Codec.encode(${paramName})` };
+    else return { sol: arg.name, enc: `${arg.name}Codec.encode(${paramName})` };
   }
 
   function makeFnName(e: Entry): string {
@@ -55,12 +55,12 @@ export async function getCallEncoderContract(
   const typesGenerated: string[] = [];
 
   customTypes.forEach((customType) => {
-    if (customType.complexDesc._enum) {
-      customCodecs.push(generateSolidityEnum(customType.rawType, customType.complexDesc));
-      typesGenerated.push(customType.rawType);
-    } else {
-      customCodecs.push(generateSolidityStruct(customType.rawType, customType.complexDesc));
-      typesGenerated.push(customType.rawType);
+    if (customType.classifiedType === 'Enum') {
+      customCodecs.push(generateSolidityEnum(customType.name, customType.complexDesc));
+      typesGenerated.push(customType.name);
+    } else if(customType.classifiedType === 'Struct') {
+      customCodecs.push(generateSolidityStruct(customType.name, customType.complexDesc));
+      typesGenerated.push(customType.name);
     }
   });
 

@@ -4,9 +4,10 @@ import fs from 'node:fs';
 import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { extractAllTypes, getEntries } from './entries';
+import { getEntries } from './entries';
 import { getCallEncoderContract } from './callEncoder';
 import { ensureWritePathValid, sanitize } from './helpers';
+import { extractAllTypes } from './typeDesc';
 
 const program = new Command()
   .option('--ws <url>', 'WebSocket endpoint', 'wss://westend-asset-hub-rpc.polkadot.io')
@@ -32,6 +33,7 @@ async function main() {
   const api = await ApiPromise.create({ provider: new WsProvider(opts.ws) });
   try {
     const customTypes = extractAllTypes(api, pallets);
+    console.log(customTypes);
     console.log(JSON.stringify(customTypes));
     const entries = await getEntries(api, pallets);
 

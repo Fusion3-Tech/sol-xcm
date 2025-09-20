@@ -1,10 +1,13 @@
-export type ArgDesc = {
+import { LookupId } from "./desc";
+
+export type TypeDesc = {
   name: string;
-  classifiedType: ArgType;
+  lookupId: LookupId;
+  classifiedType: ClassifiedType;
   complexDesc?: any;
 };
 
-export type ArgType =
+export type ClassifiedType =
   | 'MultiAddressId32'
   | 'AccountId32'
   | 'CompactU128'
@@ -18,6 +21,9 @@ export type ArgType =
   | 'Bool'
   | 'FixedBytes'
   | 'VecFixed'
-  | 'Complex'
+  | 'Enum'
+  | 'Struct'
   | 'Option'
+  | 'BoundedVec'
+  | 'Vec'
   | 'Unsupported';
