@@ -1,17 +1,16 @@
-import { type ApiPromise } from "@polkadot/api";
+import { type ApiPromise } from '@polkadot/api';
 
-import { type ClassifiedType, type TypeDesc } from "./types";
-import { parseFixedArray } from "./types/fixedArray";
+import { type ClassifiedType, type TypeDesc } from './types';
+import { parseFixedArray } from './types/fixedArray';
 
 export type LookupId = number | `Lookup${number}`;
 
 export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
-  const type = resolvePrimitiveType(api, lookupId);
+  const type = resolveTypeName(api, lookupId);
 
-  if(classifyType(type) === 'Unsupported') {
+  if (classifyType(type) === 'Unsupported') {
     // Either struct or enum.
-    const typeDef = api.registry.lookup.getTypeDef(lookupId)
-    console.log(typeDef);
+    const typeDef = api.registry.lookup.getTypeDef(lookupId);
     const typeDesc: TypeDesc = {
       name: typeDef.name || typeDef.lookupName || 'Unknown',
       lookupId,
@@ -21,42 +20,35 @@ export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
     return typeDesc;
   }
 
-  if(classifyType(type) === 'VecFixed') {
+  if (classifyType(type) === 'VecFixed') {
     const arrDesc = parseFixedArray(type);
-    if(!arrDesc) throw Error("Failed to parse Fixed Array");
+    if (!arrDesc) throw Error('Failed to parse Fixed Array');
 
     const lookupId = extractLookupId(arrDesc._array.elem);
-    if(!lookupId) throw Error("Failed to extract lookup id");
-    const arrType = resolvePrimitiveType(api, lookupId);
+    if (!lookupId) throw Error('Failed to extract lookup id');
+    const arrType = resolveTypeName(api, lookupId);
 
     const typeDesc: TypeDesc = {
       name: arrType,
       classifiedType: classifyType(arrType),
       lookupId,
-    }
+    };
     return typeDesc;
   }
 
-  if(classifyType(type) === 'Vec') {
-
+  if (classifyType(type) === 'Vec') {
   }
 
-  if(classifyType(type) === 'BoundedVec') {
-
+  if (classifyType(type) === 'BoundedVec') {
   }
 
   return { name: type, lookupId, classifiedType: classifyType(type) };
 }
 
-// todo: rename
-export function resolvePrimitiveType(api: ApiPromise, lookupId: LookupId): string {
-  const id = +(`${lookupId}`.replace(/^Lookup/, '')); // -> number
+export function resolveTypeName(api: ApiPromise, lookupId: LookupId): string {
+  const id = extractLookupId(lookupId.toString());
   const def = api.registry.lookup.getTypeDef(id);
   return (def.lookupName || def.type || 'Unknown').toString();
-}
-
-function isLookupLike(raw: string) {
-  return /^\d+$/.test(raw) || raw.startsWith('Lookup');
 }
 
 export function classifyType(type: string): ClassifiedType {
@@ -67,7 +59,7 @@ export function classifyType(type: string): ClassifiedType {
   if (m) {
     const elem = m[1];
     if (elem === 'u8') return 'FixedBytes'; // encode N raw bytes, no prefix
-    return 'VecFixed';                       // fixed array of non-primitive elements
+    return 'VecFixed'; // fixed array of non-primitive elements
   }
 
   if (t.includes('multiaddress')) return 'MultiAddressId32';
@@ -83,8 +75,8 @@ export function classifyType(type: string): ClassifiedType {
   if (t === 'u64') return 'U64';
   if (t === 'u128' || t.endsWith('balance')) return 'U128';
   if (t === 'bytes' || t === 'vec<u8>' || t.includes('boundedvec<u8')) return 'Bytes';
-  if (t.includes('boundedvec<')) return 'BoundedVec'
-  if (t.includes('vec<')) return 'Vec'
+  if (t.includes('boundedvec<')) return 'BoundedVec';
+  if (t.includes('vec<')) return 'Vec';
   return 'Unsupported';
 }
 
@@ -118,11 +110,6 @@ export function findTypeByLookupName(api: ApiPromise, name: string) {
   return null; // not found
 }
 
-export function extractLookupId(raw: string): number | null {
-  const s = raw.trim();
-  if (!isLookupLike(s)) return null;
-
-  if (/^\d+$/.test(s)) return Number(s);            // e.g. "62"
-  const m = /^Lookup(\d+)$/i.exec(s);               // e.g. "Lookup62"
-  return m ? Number(m[1]) : null;
+function extractLookupId(raw: string): number {
+  return +`${raw}`.replace(/^Lookup/, '');
 }

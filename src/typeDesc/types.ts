@@ -1,4 +1,4 @@
-import { type LookupId } from "./desc";
+import { type LookupId } from './desc';
 
 export type TypeDesc = {
   name: string;

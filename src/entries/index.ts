@@ -4,11 +4,6 @@ import { sanitize } from '../helpers';
 import { describeArg } from './args';
 import { type ArgDesc } from './types';
 
-export type Arg = {
-  name: string;
-  lookupId: number;
-};
-
 export type Entry = {
   entryName: string;
   section: string;

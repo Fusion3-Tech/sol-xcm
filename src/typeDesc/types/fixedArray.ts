@@ -15,7 +15,11 @@ export function parseFixedArray(spec: string): FixedArraySpec | null {
   if (!inner) return null;
 
   // Find the top-level delimiter ; or , (not inside <...>, ( ... ), or [ ... ])
-  let angle = 0, round = 0, square = 0, split = -1, delim = '';
+  let angle = 0,
+    round = 0,
+    square = 0,
+    split = -1,
+    delim = '';
   for (let i = inner.length - 1; i >= 0; i--) {
     const c = inner[i];
     if (c === '>') angle++;
@@ -25,7 +29,9 @@ export function parseFixedArray(spec: string): FixedArraySpec | null {
     else if (c === ']') square++;
     else if (c === '[') square--;
     else if ((c === ';' || c === ',') && angle === 0 && round === 0 && square === 0) {
-      split = i; delim = c; break;
+      split = i;
+      delim = c;
+      break;
     }
   }
   if (split < 0) return null;
@@ -38,5 +44,5 @@ export function parseFixedArray(spec: string): FixedArraySpec | null {
   const len = Number(right);
   if (!Number.isInteger(len) || len < 0) return null;
 
-  return { _array: { elem: left, len }};
+  return { _array: { elem: left, len } };
 }
