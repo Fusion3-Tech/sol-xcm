@@ -29,18 +29,13 @@ export async function getCallEncoderContract(
     if (arg.argType === 'CompactU32')
       return { sol: 'uint32', enc: `ScaleCodec.compactU32(${paramName})` };
     if (arg.argType === 'U8') return { sol: 'uint8', enc: `ScaleCodec.u8(${paramName})` };
-    if (arg.argType === 'U16')
-      return { sol: 'uint16', enc: `ScaleCodec.u16LE(${paramName})` };
-    if (arg.argType === 'U32')
-      return { sol: 'uint32', enc: `ScaleCodec.u32LE(${paramName})` };
-    if (arg.argType === 'U64')
-      return { sol: 'uint64', enc: `ScaleCodec.u64LE(${paramName})` };
-    if (arg.argType === 'U128')
-      return { sol: 'uint128', enc: `ScaleCodec.u128LE(${paramName})` };
+    if (arg.argType === 'U16') return { sol: 'uint16', enc: `ScaleCodec.u16LE(${paramName})` };
+    if (arg.argType === 'U32') return { sol: 'uint32', enc: `ScaleCodec.u32LE(${paramName})` };
+    if (arg.argType === 'U64') return { sol: 'uint64', enc: `ScaleCodec.u64LE(${paramName})` };
+    if (arg.argType === 'U128') return { sol: 'uint128', enc: `ScaleCodec.u128LE(${paramName})` };
     if (arg.argType === 'Bytes')
       return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
-    if (arg.argType === 'Bool')
-      return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
+    if (arg.argType === 'Bool') return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
     else return { sol: arg.typeName, enc: `${arg.typeName}Codec.encode(${paramName})` };
   }
 
@@ -58,7 +53,7 @@ export async function getCallEncoderContract(
     if (customType.classifiedType === 'Enum') {
       customCodecs.push(generateSolidityEnum(customType.name, customType.complexDesc));
       typesGenerated.push(customType.name);
-    } else if(customType.classifiedType === 'Struct') {
+    } else if (customType.classifiedType === 'Struct') {
       customCodecs.push(generateSolidityStruct(customType.name, customType.complexDesc));
       typesGenerated.push(customType.name);
     }

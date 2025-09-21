@@ -1,7 +1,13 @@
-import { type ApiPromise } from "@polkadot/api";
+import { type ApiPromise } from '@polkadot/api';
 
-import { type TypeDesc } from "./types";
-import { type LookupId, classifyType, descType, findTypeByLookupName, resolveTypeName } from "./desc";
+import { type TypeDesc } from './types';
+import {
+  type LookupId,
+  classifyType,
+  descType,
+  findTypeByLookupName,
+  resolveTypeName,
+} from './desc';
 
 export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] {
   const types: TypeDesc[] = [];
@@ -31,17 +37,15 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] 
       const typeDef = findTypeByLookupName(api, typeRef as string);
       if (!typeDef || !typeDef.id) continue;
 
-      const typeName = classifyType(
-        resolveTypeName(api, typeDef.id),
-      );
+      const typeName = classifyType(resolveTypeName(api, typeDef.id));
 
       if (typeName === 'Unsupported') describe(typeDef.id);
 
-      if(typeDef.def.sub && typeDef.def.sub) {
-        (typeDef.def.sub as Array<any>).forEach(t => {
+      if (typeDef.def.sub && typeDef.def.sub) {
+        (typeDef.def.sub as Array<any>).forEach((t) => {
           // todo: don't or
-          describe(t.lookupIndex || t.index)
-        })
+          describe(t.lookupIndex || t.index);
+        });
       }
     }
   }
