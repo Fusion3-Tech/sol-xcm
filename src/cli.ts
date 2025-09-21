@@ -33,8 +33,6 @@ async function main() {
   const api = await ApiPromise.create({ provider: new WsProvider(opts.ws) });
   try {
     const customTypes = extractAllTypes(api, pallets);
-    console.log(customTypes);
-    console.log(JSON.stringify(customTypes));
     const entries = await getEntries(api, pallets);
 
     if (!entries.length) {

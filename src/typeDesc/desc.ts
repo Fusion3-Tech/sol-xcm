@@ -6,12 +6,11 @@ import { parseFixedArray } from "./types/fixedArray";
 export type LookupId = number | `Lookup${number}`;
 
 export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
-  const type = resolvePrimitiveType(api, lookupId);
+  const type = resolveTypeName(api, lookupId);
 
   if(classifyType(type) === 'Unsupported') {
     // Either struct or enum.
     const typeDef = api.registry.lookup.getTypeDef(lookupId)
-    console.log(typeDef);
     const typeDesc: TypeDesc = {
       name: typeDef.name || typeDef.lookupName || 'Unknown',
       lookupId,
@@ -27,7 +26,7 @@ export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
 
     const lookupId = extractLookupId(arrDesc._array.elem);
     if(!lookupId) throw Error("Failed to extract lookup id");
-    const arrType = resolvePrimitiveType(api, lookupId);
+    const arrType = resolveTypeName(api, lookupId);
 
     const typeDesc: TypeDesc = {
       name: arrType,
@@ -48,8 +47,7 @@ export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
   return { name: type, lookupId, classifiedType: classifyType(type) };
 }
 
-// todo: rename
-export function resolvePrimitiveType(api: ApiPromise, lookupId: LookupId): string {
+export function resolveTypeName(api: ApiPromise, lookupId: LookupId): string {
   const id = +(`${lookupId}`.replace(/^Lookup/, '')); // -> number
   const def = api.registry.lookup.getTypeDef(id);
   return (def.lookupName || def.type || 'Unknown').toString();

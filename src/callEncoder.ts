@@ -4,9 +4,9 @@ import { type Entry } from './entries';
 import { sanitize } from './helpers';
 import { type Opts } from './cli';
 import { type ArgDesc } from './entries/types';
-import { generateSolidityEnum } from './entries/complex/enum';
-import { generateSolidityStruct } from './entries/complex/struct';
 import { type TypeDesc } from './typeDesc/types';
+import { generateSolidityEnum } from './typeDesc/types/enum';
+import { generateSolidityStruct } from './typeDesc/types/struct';
 
 export async function getCallEncoderContract(
   api: ApiPromise,
