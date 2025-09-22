@@ -30,7 +30,7 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] 
 
     if (types.find((t) => t.lookupId === type.lookupId)) return;
 
-    if(type.classifiedType === 'Unsupported') {
+    if (type.classifiedType === 'Unsupported') {
       const typeDef = findTypeByLookupName(api, type.name);
       if (!typeDef || !typeDef.id) return;
 
@@ -39,7 +39,7 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] 
           // todo: don't or
           describe(t.lookupIndex || t.index);
         });
-      } 
+      }
     }
 
     if (!type.complexDesc) return;
