@@ -37,6 +37,7 @@ export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
   }
 
   if (classifyType(type) === 'Vec') {
+    
   }
 
   if (classifyType(type) === 'BoundedVec') {

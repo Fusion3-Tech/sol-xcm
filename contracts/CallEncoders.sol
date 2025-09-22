@@ -66,6 +66,92 @@ library StagingXcmV5JunctionsCodec {
     }
 }
 
+// Auto-generated from Substrate struct FrameSystemAccountInfo
+
+struct FrameSystemAccountInfo {
+    uint32 nonce;
+    uint32 consumers;
+    uint32 providers;
+    uint32 sufficients;
+    PalletBalancesAccountData data;
+}
+
+library FrameSystemAccountInfoCodec {
+    // SCALE encode: concatenate field encodings in declaration order
+    function encode(FrameSystemAccountInfo memory s) internal pure returns (bytes memory) {
+        return abi.encodePacked(U32Codec.encode(s.nonce), U32Codec.encode(s.consumers), U32Codec.encode(s.providers), U32Codec.encode(s.sufficients), PalletBalancesAccountDataCodec.encode(s.data));
+    }
+}
+
+// Auto-generated from Substrate struct PalletBalancesAccountData
+
+struct PalletBalancesAccountData {
+    uint128 free;
+    uint128 reserved;
+    uint128 frozen;
+    uint128 flags;
+}
+
+library PalletBalancesAccountDataCodec {
+    // SCALE encode: concatenate field encodings in declaration order
+    function encode(PalletBalancesAccountData memory s) internal pure returns (bytes memory) {
+        return abi.encodePacked(U128Codec.encode(s.free), U128Codec.encode(s.reserved), U128Codec.encode(s.frozen), U128Codec.encode(s.flags));
+    }
+}
+
+// Auto-generated from Substrate enum StagingXcmV5JunctionNetworkId
+
+enum StagingXcmV5JunctionNetworkId {
+    ByGenesis,
+    ByFork,
+    Polkadot,
+    Kusama,
+    Unused4,
+    Unused5,
+    Unused6,
+    Ethereum,
+    BitcoinCore,
+    BitcoinCash,
+    PolkadotBulletin
+}
+
+library StagingXcmV5JunctionNetworkIdCodec {
+    // SCALE encode: variant index as a single byte (<= 256 variants)
+    function encode(StagingXcmV5JunctionNetworkId v) internal pure returns (bytes memory) {
+        return abi.encodePacked(uint8(toIndex(v)));
+    }
+
+    function toIndex(StagingXcmV5JunctionNetworkId v) internal pure returns (uint8) {
+        if (v == StagingXcmV5JunctionNetworkId.ByGenesis) return 0;
+        if (v == StagingXcmV5JunctionNetworkId.ByFork) return 1;
+        if (v == StagingXcmV5JunctionNetworkId.Polkadot) return 2;
+        if (v == StagingXcmV5JunctionNetworkId.Kusama) return 3;
+        if (v == StagingXcmV5JunctionNetworkId.Unused4) return 4;
+        if (v == StagingXcmV5JunctionNetworkId.Unused5) return 5;
+        if (v == StagingXcmV5JunctionNetworkId.Unused6) return 6;
+        if (v == StagingXcmV5JunctionNetworkId.Ethereum) return 7;
+        if (v == StagingXcmV5JunctionNetworkId.BitcoinCore) return 8;
+        if (v == StagingXcmV5JunctionNetworkId.BitcoinCash) return 9;
+        if (v == StagingXcmV5JunctionNetworkId.PolkadotBulletin) return 10;
+        revert("Invalid enum value");
+    }
+
+    function fromIndex(uint8 i) internal pure returns (StagingXcmV5JunctionNetworkId v) {
+        if (i == 0) return StagingXcmV5JunctionNetworkId.ByGenesis;
+        if (i == 1) return StagingXcmV5JunctionNetworkId.ByFork;
+        if (i == 2) return StagingXcmV5JunctionNetworkId.Polkadot;
+        if (i == 3) return StagingXcmV5JunctionNetworkId.Kusama;
+        if (i == 4) return StagingXcmV5JunctionNetworkId.Unused4;
+        if (i == 5) return StagingXcmV5JunctionNetworkId.Unused5;
+        if (i == 6) return StagingXcmV5JunctionNetworkId.Unused6;
+        if (i == 7) return StagingXcmV5JunctionNetworkId.Ethereum;
+        if (i == 8) return StagingXcmV5JunctionNetworkId.BitcoinCore;
+        if (i == 9) return StagingXcmV5JunctionNetworkId.BitcoinCash;
+        if (i == 10) return StagingXcmV5JunctionNetworkId.PolkadotBulletin;
+        revert("Invalid enum index");
+    }
+}
+
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library CallEncoders {
