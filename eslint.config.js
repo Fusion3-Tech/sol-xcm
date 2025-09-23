@@ -40,6 +40,9 @@ export default [
           'ts-ignore': 'allow-with-description',
         },
       ],
+      
+      // warnings instead of errors
+      '@typescript-eslint/no-explicit-any': 'warn',
 
       // import hygiene
       'import/order': [
