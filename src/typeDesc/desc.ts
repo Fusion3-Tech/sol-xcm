@@ -37,9 +37,11 @@ export function descType(api: ApiPromise, lookupId: LookupId): TypeDesc {
   }
 
   if (classifyType(type) === 'Vec') {
+     // TODO: implement
   }
 
   if (classifyType(type) === 'BoundedVec') {
+     // TODO: implement
   }
 
   return { name: type, lookupId, classifiedType: classifyType(type) };
