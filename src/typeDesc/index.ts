@@ -28,8 +28,21 @@ export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] 
   function describe(lookupId: LookupId): void {
     const type = descType(api, lookupId);
 
-    if (!type.complexDesc) return;
     if (types.find((t) => t.lookupId === type.lookupId)) return;
+
+    if (type.classifiedType === 'Unsupported') {
+      const typeDef = findTypeByLookupName(api, type.name);
+      if (!typeDef || !typeDef.id) return;
+
+      if (typeDef.def.sub && typeDef.def.sub) {
+        (typeDef.def.sub as Array<any>).forEach((t) => {
+          // todo: don't or
+          describe(t.lookupIndex || t.index);
+        });
+      }
+    }
+
+    if (!type.complexDesc) return;
 
     types.push(type);
 
