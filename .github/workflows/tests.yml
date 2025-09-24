@@ -32,6 +32,10 @@ jobs:
         working-directory: src/contracts
         run: npm ci
 
+      - name: Compile contracts
+        working-directory: src/contracts
+        run: npx hardhat compile
+
       - name: Run contract tests
         working-directory: src/contracts
         run: npx hardhat test --no-compile
