@@ -1,8 +1,12 @@
+/*
+  Single file containing all primitive tests. 
+*/
+
 import assert from "node:assert/strict";
 import { describe, it, before } from "node:test";
 import { network } from "hardhat";
 
-describe("ScaleCodec - primitives and edge cases", async function () {
+describe("ScaleCodec - full primitive coverage (all in one file for now)", async function () {
   let codec: any;
 
   before(async () => {
@@ -10,93 +14,149 @@ describe("ScaleCodec - primitives and edge cases", async function () {
     codec = await viem.deployContract("ScaleCodecHarness");
   });
 
-  it("fixed integers: u8, u16LE, u32LE", async function () {
+  // ---------------------------
+  // u8 tests
+  // ---------------------------
+  it("u8: min 0 -> 0x00", async function () {
+    assert((await codec.read.u8([0])) === "0x00");
+  });
+
+  it("u8: max 255 -> 0xff", async function () {
     assert((await codec.read.u8([255])) === "0xff");
+  });
+
+  // ---------------------------
+  // u16 tests
+  // ---------------------------
+  it("u16LE: example 0x1234 -> 0x3412", async function () {
     assert((await codec.read.u16LE([0x1234])) === "0x3412");
+  });
+
+  it("u16LE: max 65535 -> 0xffff", async function () {
+    assert((await codec.read.u16LE([65535])) === "0xffff");
+  });
+
+  // ---------------------------
+  // u32 tests
+  // ---------------------------
+  it("u32LE: example 0xdeadbeef -> 0xefbeadde", async function () {
     assert((await codec.read.u32LE([0xdeadbeef])) === "0xefbeadde");
   });
 
-  it("vecU8 and boolean", async function () {
-    // vecU8: compact(len=2)=0x08 + data 0x0102
-    assert((await codec.read.vecU8([("0x0102" as any)])) === "0x080102");
-
-    // boolean
-    assert((await codec.read.boolean([true])) === "0x01");
-    assert((await codec.read.boolean([false])) === "0x00");
-  });
-
-  it("fixed integers edges: u64LE small + max, u128LE small", async function () {
-    // use BigInt for 64/128-bit values
-    assert((await codec.read.u64LE([1n])) === "0x0100000000000000");
-    assert((await codec.read.u64LE([18446744073709551615n])) === "0xffffffffffffffff");
-    assert((await codec.read.u128LE([1n])) === "0x01000000000000000000000000000000");
-  });
-
-  it("compactUint modes and boundaries", async function () {
-    // single-byte mode
-    assert((await codec.read.compactUint([0n])) === "0x00");
-    assert((await codec.read.compactUint([63n])) === "0xfc"); // max single-byte
-
-    // two-byte mode boundary
-    assert((await codec.read.compactUint([64n])) === "0x0101"); // start two-byte
-    // max two-byte: x = 2^14 - 1 = 16383 -> (x<<2)|1 = 65533 -> little-endian bytes 0xfdff
-    assert((await codec.read.compactUint([16383n])) === "0xfdff");
-
-    // four-byte mode: first value in 4-byte mode (2^14)
-    // x = 16384 -> (x<<2)|2 = 65538 -> u32LE(65538) -> little-endian 0x02 0x00 0x01 0x00
-    assert((await codec.read.compactUint([16384n])) === "0x02000100");
-
-    // example four-byte value (1 << 20)
-    assert((await codec.read.compactUint([1048576n])) === "0x02004000");
-
-    // big-integer mode example (2^30)
-    assert((await codec.read.compactUint([1073741824n])) === "0x0300000040");
-  });
-
-  it("option / multiAddressId32 / callIndex", async function () {
-    // optionNone has no parameters
-    assert((await codec.read.optionNone()) === "0x00");
-    // optionSome expects bytes -> cast to any to satisfy test typings
-    assert((await codec.read.optionSome([("0xdead" as any)])) === "0x01dead");
-
-    // multiAddressId32: variant 0x00 + 32 bytes account
-    const account = "0x" + "11".repeat(32);
-    // cast to any to satisfy the test wrapper TS types
-    assert((await codec.read.multiAddressId32([(account as any)])) === "0x00" + "11".repeat(32));
-
-    // callIndex: pallet 10, call 3 -> 0x0a03
-    assert((await codec.read.callIndex([10, 3])) === "0x0a03");
-  });
-
-  it("u8 min/max", async function () {
-    const out0 = await codec.read.u8([0]);
-    assert(out0 === "0x00");
-    const out255 = await codec.read.u8([255]);
-    assert(out255 === "0xff");
-  });
-
-  it("u16/u32 max", async function () {
-    assert((await codec.read.u16LE([65535])) === "0xffff");
+  it("u32LE: max 4294967295 -> 0xffffffff", async function () {
     assert((await codec.read.u32LE([4294967295])) === "0xffffffff");
   });
 
-  it("compactUint max-4byte and boundary", async function () {
-    // max for 4-byte mode: 2^30 - 1
-    const max4 = 1073741823n;
-    const enc = await codec.read.compactUint([max4]);
-    // (max4 << 2) | 2 encoded as u32LE
-    assert(enc !== undefined && enc.length > 0);
+  // ---------------------------
+  // u64 tests
+  // ---------------------------
+  it("u64LE: small 1 -> 0x0100000000000000", async function () {
+    assert((await codec.read.u64LE([1n])) === "0x0100000000000000");
   });
 
-  it("vecU8 empty and optionSome empty", async function () {
-    // empty vec -> compact(0) = 0x00
-    assert((await codec.read.vecU8([("0x" as any)])) === "0x00");
-    // optionSome with empty payload -> 0x01
-    assert((await codec.read.optionSome([("0x" as any)])) === "0x01");
+  it("u64LE: max -> 0xffffffffffffffff", async function () {
+    assert((await codec.read.u64LE([18446744073709551615n])) === "0xffffffffffffffff");
   });
 
-  it("callIndex boundary values", async function () {
-    assert((await codec.read.callIndex([0, 0])) === "0x0000");
+  // ---------------------------
+  // u128 tests
+  // ---------------------------
+  it("u128LE: min 0 -> 16 zero bytes", async function () {
+    assert((await codec.read.u128LE([0n])) === "0x00000000000000000000000000000000");
+  });
+
+  it("u128LE: small 1 -> 0x01 + 15 zeros", async function () {
+    assert((await codec.read.u128LE([1n])) === "0x01000000000000000000000000000000");
+  });
+
+  it("u128LE: max -> 16 bytes 0xff", async function () {
+    const maxU128 = BigInt("340282366920938463463374607431768211455");
+    assert((await codec.read.u128LE([maxU128])) === "0xffffffffffffffffffffffffffffffff");
+  });
+
+  // ---------------------------
+  // compactUint tests
+  // ---------------------------
+
+  // single-byte mode
+  it("compactUint: 0 -> 0x00", async function () {
+    assert((await codec.read.compactUint([0n])) === "0x00");
+  });
+  it("compactUint: 63 -> 0xfc (max single-byte)", async function () {
+    assert((await codec.read.compactUint([63n])) === "0xfc");
+  });
+
+  // two-byte mode
+  it("compactUint: 64 -> 0x0101 (start two-byte)", async function () {
+    assert((await codec.read.compactUint([64n])) === "0x0101");
+  });
+  it("compactUint: 16383 -> 0xfdff (max two-byte)", async function () {
+    assert((await codec.read.compactUint([16383n])) === "0xfdff");
+  });
+
+  // four-byte mode
+  it("compactUint: 16384 -> 0x02000100 (first 4-byte)", async function () {
+    assert((await codec.read.compactUint([16384n])) === "0x02000100");
+  });
+  it("compactUint: 2^30-1 -> 0xfeffffff (max 4-byte)", async function () {
+    assert((await codec.read.compactUint([1073741823n])) === "0xfeffffff");
+  });
+
+  // big-integer mode
+  it("compactUint: 2^30 -> 0x0300000040 (start big-int)", async function () {
+    assert((await codec.read.compactUint([1073741824n])) === "0x0300000040");
+  });
+
+  // ---------------------------
+  // vecU8 tests 
+  // ---------------------------
+  it("vecU8: empty -> 0x00", async function () {
+    assert((await codec.read.vecU8(["0x" as any])) === "0x00");
+  });
+
+  it("vecU8: example [1,2,3,4] -> 0x1001020304", async function () {
+    assert((await codec.read.vecU8(["0x01020304" as any])) === "0x1001020304");
+  });
+
+  // ---------------------------
+  // boolean tests 
+  // ---------------------------
+  it("boolean: true -> 0x01", async function () {
+    assert((await codec.read.boolean([true])) === "0x01");
+  });
+
+  it("boolean: false -> 0x00", async function () {
+    assert((await codec.read.boolean([false])) === "0x00");
+  });
+
+  // ---------------------------
+  // option tests 
+  // ---------------------------
+  it("option: None -> 0x00", async function () {
+    assert((await codec.read.optionNone()) === "0x00");
+  });
+
+  it("option: Some(empty) -> 0x01", async function () {
+    assert((await codec.read.optionSome(["0x" as any])) === "0x01");
+  });
+
+  it("option: Some(0xdead) -> 0x01dead", async function () {
+    assert((await codec.read.optionSome(["0xdead" as any])) === "0x01dead");
+  });
+
+  // ---------------------------
+  // Other specific types
+  // ---------------------------
+  it("multiAddressId32: example -> 0x00 + 32 bytes", async function () {
+    const account = "0x" + "11".repeat(32);
+    assert((await codec.read.multiAddressId32([account as any])) === "0x00" + "11".repeat(32));
+  });
+
+  it("callIndex: example (10,3) -> 0x0a03", async function () {
+    assert((await codec.read.callIndex([10, 3])) === "0x0a03");
+  });
+
+  it("callIndex: boundary (255,255) -> 0xffff", async function () {
     assert((await codec.read.callIndex([255, 255])) === "0xffff");
   });
 });
