@@ -50,7 +50,7 @@ async function main() {
     ensureWritePathValid(encodersOutPath);
     ensureWritePathValid(scaleCodecOutPath);
     fs.writeFileSync(encodersOutPath, callEncoderContract);
-    copyFile('src/contracts/ScaleCodec.sol', scaleCodecOutPath, 0);
+    copyFile('src/contracts/src/ScaleCodec.sol', scaleCodecOutPath, 0);
 
     console.log(`✅ Wrote:
  - ${encodersOutPath}
