@@ -3,7 +3,7 @@
 pragma solidity ^0.8.24;
 
 import "./ScaleCodec.sol";
-import "./CallEncoders.sol";
+import "./BalancesCallEncoder.sol";
 
 // Auto-generated from Substrate enum PalletBalancesAdjustmentDirection
 
@@ -44,7 +44,7 @@ library PalletBalancesAdjustmentDirectionCodec {
 
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
-library CallEncoders {
+library BalancesCallEncoder {
     /// @notice balances.transferAllowDeath
     function balances_transferAllowDeath_id32(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
         return bytes.concat(
