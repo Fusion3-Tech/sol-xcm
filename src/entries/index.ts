@@ -13,11 +13,11 @@ export type Entry = {
   args: ArgDesc[];
 };
 
-export async function getEntries(api: ApiPromise, pallets: string[]): Promise<Entry[]> {
+export async function getEntries(api: ApiPromise, pallet: string): Promise<Entry[]> {
   const entries: Entry[] = [];
 
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
-    if (!pallets.includes(section.toLowerCase())) continue;
+    if (pallet !== section.toLowerCase()) continue;
     for (const [method, extrinsic] of Object.entries(sectionMethods)) {
       const [palletIndex, callIndex] = extrinsic.callIndex as Uint8Array;
 

@@ -9,11 +9,11 @@ import {
   resolveTypeName,
 } from './desc';
 
-export function extractAllTypes(api: ApiPromise, pallets: string[]): TypeDesc[] {
+export function extractAllTypes(api: ApiPromise, pallet: string): TypeDesc[] {
   const types: TypeDesc[] = [];
 
   for (const [section, sectionMethods] of Object.entries(api.tx)) {
-    if (!pallets.includes(section.toLowerCase())) continue;
+    if (pallet !== section.toLowerCase()) continue;
 
     for (const [, extrinsic] of Object.entries(sectionMethods as Record<string, any>)) {
       const metaArgs = (extrinsic as any).toJSON().fields;
