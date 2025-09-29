@@ -13,6 +13,7 @@ export async function getCallEncoderContract(
   opts: Opts,
   customTypes: TypeDesc[],
   entries: Entry[],
+  palletName: string,
 ) {
   const chain = (await api.rpc.system.chain()).toString();
   const specName = api.runtimeVersion.specName.toString();
@@ -86,17 +87,19 @@ export async function getCallEncoderContract(
     );
   }
 
+  const contractLibName = `${palletName}CallEncoder`;
+
   const callEncodersContract = `// Auto-generated from ${chain} (${specName} v${specVersion})
 // Source WS: ${opts.ws}
 pragma solidity ^0.8.24;
 
 import "./ScaleCodec.sol";
-import "./${sanitize(opts.contract)}.sol";
+import "./${contractLibName}.sol";
 
 ${customCodecs.join('\n')}
 
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
-library ${sanitize(opts.contract)} {
+library ${contractLibName} {
 ${encoderFns.join('\n\n')}
 }
     `;

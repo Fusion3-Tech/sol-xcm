@@ -6,19 +6,17 @@ import path from 'node:path';
 
 import { getEntries } from './entries';
 import { getCallEncoderContract } from './callEncoder';
-import { ensureWritePathValid, sanitize } from './helpers';
+import { ensureWritePathValid } from './helpers';
 import { extractAllTypes } from './typeDesc';
 
 const program = new Command()
   .option('--ws <url>', 'WebSocket endpoint', 'wss://westend-asset-hub-rpc.polkadot.io')
   .option('--out-dir <dir>', 'Output contracts directory', 'contracts')
-  .option('--contract <name>', 'Encoder contract name', 'CallEncoders')
   .argument('<pallets...>', 'Pallet names to include (e.g. Balances System)');
 
 export type Opts = {
   ws: string;
   outDir: string;
-  contract: string;
 };
 
 async function main() {
@@ -32,29 +30,32 @@ async function main() {
 
   const api = await ApiPromise.create({ provider: new WsProvider(opts.ws) });
   try {
-    const customTypes = extractAllTypes(api, pallets);
-    const entries = await getEntries(api, pallets);
+    for (const pallet of pallets) {
+      const customTypes = extractAllTypes(api, pallet);
+      const entries = await getEntries(api, pallet);
 
-    if (!entries.length) {
-      console.error('❌ No matching calls found.');
-      process.exit(1);
+      if (!entries.length) {
+        console.warn(`⚠️ No matching calls found for pallet: ${pallet}. Skipping.`);
+        continue;
+      }
+
+      entries.sort((a, b) => a.palletIndex - b.palletIndex || a.callIndex - b.callIndex);
+
+      const palletNamePascal = pallet.charAt(0).toUpperCase() + pallet.slice(1);
+      const contract = await getCallEncoderContract(api, opts, customTypes, entries, palletNamePascal);
+
+      // write files
+      const encodersOutPath = path.join(opts.outDir, `${palletNamePascal}CallEncoder.sol`);
+      ensureWritePathValid(encodersOutPath);
+      fs.writeFileSync(encodersOutPath, contract);
+
+      console.log(`✅ Wrote: ${encodersOutPath}`);
     }
 
-    entries.sort((a, b) => a.palletIndex - b.palletIndex || a.callIndex - b.callIndex);
-
-    const callEncoderContract = await getCallEncoderContract(api, opts, customTypes, entries);
-
-    // write files
-    const encodersOutPath = path.join(opts.outDir, `${sanitize(opts.contract)}.sol`);
     const scaleCodecOutPath = path.join(opts.outDir, 'ScaleCodec.sol');
-    ensureWritePathValid(encodersOutPath);
     ensureWritePathValid(scaleCodecOutPath);
-    fs.writeFileSync(encodersOutPath, callEncoderContract);
     copyFile('src/contracts/src/ScaleCodec.sol', scaleCodecOutPath, 0);
-
-    console.log(`✅ Wrote:
- - ${encodersOutPath}
- - ${scaleCodecOutPath}`);
+    console.log(`✅ Wrote: ${scaleCodecOutPath}`);
   } finally {
     await api.disconnect();
   }
