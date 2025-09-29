@@ -11,6 +11,7 @@ export type ClassifiedType =
   | 'MultiAddressId32'
   | 'AccountId32'
   | 'CompactU128'
+  | 'CompactU64'
   | 'CompactU32'
   | 'U8'
   | 'U16'
