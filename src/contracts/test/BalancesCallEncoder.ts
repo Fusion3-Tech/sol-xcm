@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it, before } from "node:test";
+import { describe, it, before, after } from "node:test";
 import { network } from "hardhat";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 
@@ -13,6 +13,11 @@ describe("BalancesCallEncoder - all extrinsics encode correctly", async function
     const { viem } = await network.connect();
     balances = await viem.deployContract("BalancesCallEncoderHarness");
     api = await ApiPromise.create({provider: new WsProvider(POLKADOT_ASSET_HUB_WS)});
+    await api.isReady;
+  });
+
+  after(async () => {
+    await api.disconnect();
   });
 
   it("balances_transferAllowDeath_id32", async function () {
