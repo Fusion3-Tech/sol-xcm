@@ -46,7 +46,7 @@ library PalletBalancesAdjustmentDirectionCodec {
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library BalancesCallEncoder {
     /// @notice balances.transferAllowDeath
-    function balances_transferAllowDeath_id32(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
+    function balances_transferAllowDeath(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 0),
             ScaleCodec.multiAddressId32(dest),
@@ -55,7 +55,7 @@ library BalancesCallEncoder {
     }
 
     /// @notice balances.forceTransfer
-    function balances_forceTransfer_id32(bytes32 source, bytes32 dest, uint128 value) internal pure returns (bytes memory) {
+    function balances_forceTransfer(bytes32 source, bytes32 dest, uint128 value) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 2),
             ScaleCodec.multiAddressId32(source),
@@ -65,7 +65,7 @@ library BalancesCallEncoder {
     }
 
     /// @notice balances.transferKeepAlive
-    function balances_transferKeepAlive_id32(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
+    function balances_transferKeepAlive(bytes32 dest, uint128 value) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 3),
             ScaleCodec.multiAddressId32(dest),
@@ -74,7 +74,7 @@ library BalancesCallEncoder {
     }
 
     /// @notice balances.transferAll
-    function balances_transferAll_id32(bytes32 dest, bool keep_alive) internal pure returns (bytes memory) {
+    function balances_transferAll(bytes32 dest, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 4),
             ScaleCodec.multiAddressId32(dest),
@@ -83,7 +83,7 @@ library BalancesCallEncoder {
     }
 
     /// @notice balances.forceUnreserve
-    function balances_forceUnreserve_id32(bytes32 who, uint128 amount) internal pure returns (bytes memory) {
+    function balances_forceUnreserve(bytes32 who, uint128 amount) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 5),
             ScaleCodec.multiAddressId32(who),
@@ -100,7 +100,7 @@ library BalancesCallEncoder {
     }
 
     /// @notice balances.forceSetBalance
-    function balances_forceSetBalance_id32(bytes32 who, uint128 new_free) internal pure returns (bytes memory) {
+    function balances_forceSetBalance(bytes32 who, uint128 new_free) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 8),
             ScaleCodec.multiAddressId32(who),

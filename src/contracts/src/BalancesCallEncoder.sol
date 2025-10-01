@@ -126,4 +126,3 @@ library BalancesCallEncoder {
         );
     }
 }
-   

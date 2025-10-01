@@ -41,9 +41,7 @@ export async function getCallEncoderContract(
   }
 
   function makeFnName(e: Entry): string {
-    // e.g. balances_transferKeepAlive_id32 when first arg is MultiAddressId32
-    const suffix = e.args.length && e.args[0].argType === 'MultiAddressId32' ? '_id32' : '';
-    return `${e.section}_${e.method}${suffix}`;
+    return `${e.section}_${e.method}`;
   }
 
   const encoderFns: string[] = [];
