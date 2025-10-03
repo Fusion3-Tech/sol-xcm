@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { describe, it, before } from "node:test";
 import { network } from "hardhat";
 
-describe("ScaleCodec - full primitive coverage (all in one file for now)", async function () {
+describe("ScaleCodec - full primitive coverage", async function () {
   let codec: any;
 
   before(async () => {
