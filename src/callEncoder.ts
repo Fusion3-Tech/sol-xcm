@@ -37,7 +37,7 @@ export async function getCallEncoderContract(
     if (arg.argType === 'Bytes')
       return { sol: 'bytes memory', enc: `ScaleCodec.vecU8(${paramName})` };
     if (arg.argType === 'Bool') return { sol: 'bool', enc: `ScaleCodec.boolean(${paramName})` };
-    else return { sol: arg.typeName, enc: `${arg.typeName}Codec.encode(${paramName})` };
+    else return { sol: `${arg.typeName} calldata`, enc: `${arg.typeName}Codec.encode(${paramName})` };
   }
 
   function makeFnName(e: Entry): string {
@@ -92,7 +92,6 @@ export async function getCallEncoderContract(
 pragma solidity ^0.8.24;
 
 import "./ScaleCodec.sol";
-import "./${contractLibName}.sol";
 
 ${customCodecs.join('\n')}
 
