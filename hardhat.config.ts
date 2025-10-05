@@ -10,11 +10,6 @@ const config: HardhatUserConfig = {
     artifacts: "src/contracts/artifacts/",
     cache: "src/contracts/cache/"
   },
-  test: {
-    solidity: {
-      timeout: 60000
-    }
-  },
 };
 
 export default config;

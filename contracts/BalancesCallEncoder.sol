@@ -109,7 +109,7 @@ library BalancesCallEncoder {
     }
 
     /// @notice balances.forceAdjustTotalIssuance
-    function balances_forceAdjustTotalIssuance(PalletBalancesAdjustmentDirection direction, uint128 delta) internal pure returns (bytes memory) {
+    function balances_forceAdjustTotalIssuance(PalletBalancesAdjustmentDirection calldata direction, uint128 delta) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(10, 9),
             PalletBalancesAdjustmentDirectionCodec.encode(direction),
