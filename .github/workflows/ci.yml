@@ -21,4 +21,15 @@ jobs:
       - run: npm ci
       - run: npm run prettier -- --check
       - run: npm run lint
-      - run: npm run generate Balances
+      - run: npm run generate Balances AssetConversion ForeignAssets 
+
+      # Check if generated files match committed versions (fail if they differ)
+      - name: Check generated files for changes
+        run: |
+          if [ -n "$(git diff --name-only contracts/BalancesCallEncoder.sol contracts/AssetConversionCallEncoder.sol contracts/ForeignAssetsCallEncoder.sol contracts/ScaleCodec.sol)" ]; then
+            echo "Generated Solidity files have changed. Please review the differences:"
+            git diff contracts/BalancesCallEncoder.sol contracts/AssetConversionCallEncoder.sol contracts/ForeignAssetsCallEncoder.sol contracts/ScaleCodec.sol
+            exit 1
+          else
+            echo "Generated files match committed versions."
+          fi
