@@ -49,8 +49,6 @@ interface IXcmBuilder {
 }
 
 contract XcmBuilderV3 is IXcmBuilder {
-    IScaleCodec private immutable S;
-
     /* ===== Fixed tags for XCM v3 =====
        (These match commonly-used Polkadot/Kusama XCM v3 layouts.) */
     uint8 private constant TAG_VersionedXcm_V3            = 3;
@@ -93,10 +91,6 @@ contract XcmBuilderV3 is IXcmBuilder {
     uint8 private constant TAG_Instruction_DepositAsset   = 8;
     uint8 private constant TAG_Instruction_ClearOrigin    = 9;
 
-    constructor(IScaleCodec scaleCodec) {
-        S = scaleCodec;
-    }
-
     /* ===== private helpers ===== */
 
     function _enum1(uint8 tag, bytes memory payload) private pure returns (bytes memory) {
@@ -104,7 +98,7 @@ contract XcmBuilderV3 is IXcmBuilder {
     }
 
     function _vec(bytes memory concatenated, uint256 count) private view returns (bytes memory) {
-        return abi.encodePacked(S.compactUint(count), concatenated);
+        return abi.encodePacked(ScaleCodec.compactUint(count), concatenated);
     }
 
     /* ===== Junctions & MultiLocation ===== */
@@ -115,7 +109,7 @@ contract XcmBuilderV3 is IXcmBuilder {
     }
 
     function jParachain(uint32 paraId) external view returns (bytes memory) {
-        return _enum1(TAG_Junction_Parachain, S.u32(paraId));
+        return _enum1(TAG_Junction_Parachain, ScaleCodec.u32LE(paraId));
     }
 
     function jAccountId32(bytes32 id) external view returns (bytes memory) {
@@ -129,11 +123,11 @@ contract XcmBuilderV3 is IXcmBuilder {
     }
 
     function jPalletInstance(uint8 index) external view returns (bytes memory) {
-        return _enum1(TAG_Junction_PalletInstance, S.u8(index));
+        return _enum1(TAG_Junction_PalletInstance, ScaleCodec.u8(index));
     }
 
     function jGeneralIndex(uint128 index) external view returns (bytes memory) {
-        return _enum1(TAG_Junction_GeneralIndex, S.u128(index));
+        return _enum1(TAG_Junction_GeneralIndex, ScaleCodec.u128LE(index));
     }
 
     function interiorX1(bytes calldata j1) external view returns (bytes memory) {
@@ -150,7 +144,7 @@ contract XcmBuilderV3 is IXcmBuilder {
 
     function multiLocation(uint8 parents, bytes calldata interior) external view returns (bytes memory) {
         // MultiLocation { parents: u8, interior: Junctions }
-        return abi.encodePacked(S.u8(parents), interior);
+        return abi.encodePacked(ScaleCodec.u8(parents), interior);
     }
 
     /* ===== Assets ===== */
@@ -160,11 +154,11 @@ contract XcmBuilderV3 is IXcmBuilder {
     }
 
     function fungible(uint128 amount) external view returns (bytes memory) {
-        return _enum1(TAG_Fungibility_Fungible, S.u128(amount));
+        return _enum1(TAG_Fungibility_Fungible, ScaleCodec.u128LE(amount));
     }
 
     function multiAssetConcreteFungible(bytes calldata assetIdConcreteEncoded, uint128 amount) external view returns (bytes memory) {
-        return abi.encodePacked(assetIdConcreteEncoded, _enum1(TAG_Fungibility_Fungible, S.u128(amount)));
+        return abi.encodePacked(assetIdConcreteEncoded, _enum1(TAG_Fungibility_Fungible, ScaleCodec.u128LE(amount)));
     }
 
     function vecMultiAsset(bytes calldata concatenated, uint256 count) external view returns (bytes memory) {
@@ -178,7 +172,7 @@ contract XcmBuilderV3 is IXcmBuilder {
     /* ===== Weight / WeightLimit ===== */
 
     function weight(uint64 refTime, uint64 proofSize) external view returns (bytes memory) {
-        return abi.encodePacked(S.u64(refTime), S.u64(proofSize));
+        return abi.encodePacked(ScaleCodec.u64LE(refTime), ScaleCodec.u64LE(proofSize));
     }
 
     function weightLimitLimited(bytes calldata weightEncoded) external pure returns (bytes memory) {
@@ -208,7 +202,7 @@ contract XcmBuilderV3 is IXcmBuilder {
     }
 
     function insBuyExecution(uint32 feeAssetItem, bytes calldata weightLimitEncoded) external view returns (bytes memory) {
-        return _enum1(TAG_Instruction_BuyExecution, abi.encodePacked(S.u32(feeAssetItem), weightLimitEncoded));
+        return _enum1(TAG_Instruction_BuyExecution, abi.encodePacked(ScaleCodec.u32LE(feeAssetItem), weightLimitEncoded));
     }
 
     function insTransact(bytes calldata originKindEncoded, bytes calldata call, bytes calldata weightEncoded) external pure returns (bytes memory) {
@@ -218,7 +212,7 @@ contract XcmBuilderV3 is IXcmBuilder {
     function insDepositAsset(bytes calldata versionedMultiAssetsEncoded, bytes calldata beneficiaryVersionedMultiLocationEncoded, uint32 maxAssets) external view returns (bytes memory) {
         return _enum1(
             TAG_Instruction_DepositAsset,
-            abi.encodePacked(versionedMultiAssetsEncoded, beneficiaryVersionedMultiLocationEncoded, S.u32(maxAssets))
+            abi.encodePacked(versionedMultiAssetsEncoded, beneficiaryVersionedMultiLocationEncoded, ScaleCodec.u32LE(maxAssets))
         );
     }
 

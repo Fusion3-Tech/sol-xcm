@@ -8,11 +8,9 @@ import "./IXCM.sol";
 contract XcmExamples {
     IXcm xcmPrecompile = IXcm(XCM_PRECOMPILE_ADDRESS);
     XcmBuilderV3 public immutable Builder;
-    IScaleCodec   public immutable S;
 
-    constructor() {
-        S = new ScaleCodec();
-        Builder = new XcmBuilderV3(S);
+    constructor(XcmBuilderV3 builder) {
+        Builder = builder;
     }
 
     /// @param destParaId            Destination parachain ID.
