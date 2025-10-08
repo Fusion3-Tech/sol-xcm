@@ -1,9 +1,8 @@
-// Auto-generated from Westend Asset Hub (westmint v1020000)
+// Auto-generated from Westend Asset Hub (westmint v1020001)
 // Source WS: wss://westend-asset-hub-rpc.polkadot.io
 pragma solidity ^0.8.24;
 
 import "./ScaleCodec.sol";
-import "./BalancesCallEncoder.sol";
 
 // Auto-generated from Substrate enum PalletBalancesAdjustmentDirection
 
