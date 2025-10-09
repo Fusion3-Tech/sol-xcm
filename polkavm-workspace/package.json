@@ -1,0 +1,17 @@
+{
+  "name": "polkavm-workspace",
+  "version": "1.0.0",
+  "description": "PolkaVM minimal compile workspace",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "compile": "hardhat compile --config hardhat.config.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@parity/hardhat-polkadot": "0.1.9",
+    "hardhat": "2.26.3"
+  }
+}
