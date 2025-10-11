@@ -88,22 +88,18 @@ export function findTypeByLookupName(api: ApiPromise, name: string) {
   for (const portable of lookup.types) {
     const id = portable.id.toNumber();
 
-    // High-level TypeDef (what you usually want)
-    const def = lookup.getTypeDef(id); // { info, lookupName, sub, type, ... }
+    const def = lookup.getTypeDef(id);
 
-    // 1) Exact lookupName match
     if (def.lookupName === name) {
       return { id, def, si: lookup.getSiType(id) };
     }
 
-    // 2) Some runtimes don't set lookupName; derive it from the SCALE-Info path
-    const si = lookup.getSiType(id); // SiType
+    const si = lookup.getSiType(id);
     const joined = si.path.map((p: any) => p.toString()).join('');
     if (joined === name) {
       return { id, def, si };
     }
 
-    // 3) Fallback: sometimes def.type equals the friendly name
     if (def.type === name) {
       return { id, def, si };
     }
