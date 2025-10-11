@@ -18,7 +18,7 @@ Solidity contracts execute in a sandboxed environment. They can only access data
 
 Each Polkadot-SDK based blockchain provides self describing metadata. The runtime metadata structure contains all the information necessary on how to interact with the Polkadot runtime.
 
-Given that Solidity contracts are executed in a sandboxed environment, they don't have access to the metadata of blockchains deployed on Polkadot. Because of this, we are providing a script that generates a Solidity library exposing a typed interface for the specified module the user wants to interact with. 
+Given that Solidity contracts are executed in a sandboxed environment, they don't have access to the metadata of blockchains deployed on Polkadot. Because of this, we are providing a script that generates a Solidity library exposing a typed interface for the specified module the user wants to interact with.
 
 We are providing a CLI interface that allows users to specify the blockchain and the modules for which they want to generate the interface.
 
