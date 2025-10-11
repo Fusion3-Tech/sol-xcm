@@ -4,3 +4,5 @@ artifacts-pvm/
 cache/
 /ignition/deployments/
 .env
+typechain-types/
+cache-pvm/

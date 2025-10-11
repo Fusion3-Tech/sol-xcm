@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.20;
 
 /// @title Minimal SCALE encoding helpers needed for common FRAME calls
 library ScaleCodec {

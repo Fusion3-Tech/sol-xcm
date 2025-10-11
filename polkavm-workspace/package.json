@@ -3,15 +3,22 @@
   "version": "1.0.0",
   "description": "PolkaVM minimal compile workspace",
   "main": "index.js",
-  "type": "commonjs",
   "scripts": {
-    "compile": "hardhat compile --config hardhat.config.cjs"
+    "compile": "hardhat compile --config hardhat.config.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@parity/hardhat-polkadot": "0.1.9",
-    "hardhat": "2.26.3"
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@polkadot/util-crypto": "^13.5.4",
+    "dockerode": "^4.0.9",
+    "hardhat": "2.26.0",
+    "polkadot-api": "^1.14.1",
+    "solc": "0.8.20"
+  },
+  "dependencies": {
+    "@parity/hardhat-polkadot": "^0.2.0-pre2",
+    "@parity/hardhat-polkadot-resolc": "^0.2.0-pre1"
   }
 }
