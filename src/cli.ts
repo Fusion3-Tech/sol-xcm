@@ -42,7 +42,13 @@ async function main() {
       entries.sort((a, b) => a.palletIndex - b.palletIndex || a.callIndex - b.callIndex);
 
       const palletNamePascal = pallet.charAt(0).toUpperCase() + pallet.slice(1);
-      const contract = await getCallEncoderContract(api, opts, customTypes, entries, palletNamePascal);
+      const contract = await getCallEncoderContract(
+        api,
+        opts,
+        customTypes,
+        entries,
+        palletNamePascal,
+      );
 
       // write files
       const encodersOutPath = path.join(opts.outDir, `${palletNamePascal}CallEncoder.sol`);

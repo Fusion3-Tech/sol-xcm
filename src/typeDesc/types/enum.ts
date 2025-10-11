@@ -1,4 +1,4 @@
-import { toIdent } from './common';
+import { PRIMS, toIdent } from './common';
 
 type VariantShape = null | number | string | string[] | Record<string, string>;
 type EnumJson = { _enum: string[] } | { _enum: Record<string, VariantShape> };
@@ -121,26 +121,7 @@ ${ctors.replace(/\n/g, '\n    ')}
 export function solTypeOf(t: string): string {
   const s = t.replace(/\s+/g, '');
 
-  // primitives
-  const prim: Record<string, string> = {
-    bool: 'bool',
-    char: 'uint32', // SCALE char is u32 code point
-    u8: 'uint8',
-    u16: 'uint16',
-    u32: 'uint32',
-    u64: 'uint64',
-    u128: 'uint128',
-    u256: 'uint256',
-    i8: 'int8',
-    i16: 'int16',
-    i32: 'int32',
-    i64: 'int64',
-    i128: 'int128',
-    i256: 'int256',
-    Bytes: 'bytes', // polkadot.js alias for Vec<u8>
-    String: 'string', // UTF-8 string (Vec<u8> semantically)
-  };
-  if (prim[s]) return prim[s];
+  if (PRIMS[s]) return PRIMS[s];
 
   // Vec<T> and BoundedVec<T,N>
   let m = s.match(/^Vec<(.+)>$/);
@@ -174,7 +155,7 @@ export function solTypeOf(t: string): string {
   m = s.match(/^Option<(.+)>$/);
   if (m) return solTypeOf(m[1]); // for function params; tag handled by encoder
 
-  // Fallback: treat unknown as bytes (you can tighten this as you add more types)
+  // Fallback: treat unknown as bytes
   return 'bytes';
 }
 
@@ -183,7 +164,6 @@ export function solTypeOf(t: string): string {
 export function encodeExprOf(expr: string, t: string): string {
   const s = t.replace(/\s+/g, '');
 
-  // primitives (assumes you have these codec libs)
   const prim = {
     bool: (e: string) => `ScaleBool.encode(${e})`,
     char: (e: string) => `ScaleU32.encode(${e})`,
@@ -265,9 +245,6 @@ function mangle(t: string): string {
     .replace(/</g, '_')
     .replace(/>/g, '')
     .replace(/,/g, '_')
-    .replace(/\+/g, 'Plus')
-    .replace(/-/g, 'Minus')
-    .replace(/\*/g, 'Times')
     .replace(/u(\d+)/g, 'U$1')
     .replace(/i(\d+)/g, 'I$1');
 }
