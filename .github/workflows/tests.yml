@@ -29,20 +29,16 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies (contracts)
-        working-directory: src/contracts
         run: npm ci
 
       - name: Compile contracts
-        working-directory: src/contracts
         run: npx hardhat compile
 
       - name: Run contract tests
-        working-directory: src/contracts
         run: npx hardhat test --no-compile
 
       - name: Compile & run tests (fallback)
         if: failure()
-        working-directory: src/contracts
         run: |
           npx hardhat compile
           npx hardhat test
