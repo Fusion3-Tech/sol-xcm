@@ -55,7 +55,8 @@ export function extractAllTypes(api: ApiPromise, pallet: string): TypeDesc[] {
       if (typeName === 'Unsupported') describe(typeDef.id);
 
       if (typeDef.def.sub && typeDef.def.sub) {
-        (typeDef.def.sub as Array<any>).forEach((t) => {
+        const sub = typeDef.def.sub.length ? typeDef.def.sub : [typeDef.def.sub];
+        (sub as Array<any>).forEach((t) => {
           // todo: don't or
           describe(t.lookupIndex || t.index);
         });

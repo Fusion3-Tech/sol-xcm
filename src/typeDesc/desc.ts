@@ -68,8 +68,10 @@ export function classifyType(type: string): ClassifiedType {
   if (t.includes('accountid32') || t === 'accountid') return 'AccountId32';
   if (t.startsWith('compact<')) {
     if (t.includes('u128') || t.includes('balance')) return 'CompactU128';
+    if (t.includes('u64')) return 'CompactU64';
     if (t.includes('u32')) return 'CompactU32';
   }
+  if (t.startsWith('option<')) return 'Option';
   if (t === 'bool') return 'Bool';
   if (t === 'u8') return 'U8';
   if (t === 'u16') return 'U16';
