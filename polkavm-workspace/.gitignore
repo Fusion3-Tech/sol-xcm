@@ -1,0 +1,8 @@
+node_modules/
+artifacts/
+artifacts-pvm/
+cache/
+/ignition/deployments/
+.env
+typechain-types/
+cache-pvm/

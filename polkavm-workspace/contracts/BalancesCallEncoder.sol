@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: MIT
 // Auto-generated from Westend Asset Hub (westmint v1020000)
 // Source WS: wss://westend-asset-hub-rpc.polkadot.io
 pragma solidity ^0.8.20;
 
 import "./ScaleCodec.sol";
-import "./BalancesCallEncoder.sol";
 
 // Auto-generated from Substrate enum PalletBalancesAdjustmentDirection
 
@@ -126,4 +126,3 @@ library BalancesCallEncoder {
         );
     }
 }
-    
