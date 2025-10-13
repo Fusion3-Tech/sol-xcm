@@ -89,7 +89,7 @@ export async function getCallEncoderContract(
 
   const callEncodersContract = `// Auto-generated from ${chain} (${specName} v${specVersion})
 // Source WS: ${opts.ws}
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.20;
 
 import "./ScaleCodec.sol";
 
