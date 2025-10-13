@@ -1,4 +1,4 @@
-import { RESERVED, toIdent } from './common';
+import { PRIMS, RESERVED, toIdent } from './common';
 
 type StructShape = { _struct: Record<string, string> } | Record<string, string>;
 
@@ -28,31 +28,6 @@ function toVarIdent(x: string): string {
 /** Map registry/alias names to Solidity *field types* used inside the struct. */
 function solidityFieldTypeOf(typeRef: string): [string, 'primitive' | 'complex'] {
   const t = typeRef.replace(/\s+/g, '');
-  const PRIMS: Record<string, string> = {
-    // unsigned
-    u8: 'uint8',
-    u16: 'uint16',
-    u32: 'uint32',
-    u64: 'uint64',
-    u128: 'uint128',
-    u256: 'uint256',
-    // signed
-    i8: 'int8',
-    i16: 'int16',
-    i32: 'int32',
-    i64: 'int64',
-    i128: 'int128',
-    i256: 'int256',
-    bool: 'bool',
-    // common hashes/ids
-    H256: 'bytes32',
-    H160: 'bytes20',
-    AccountId32: 'bytes32',
-    // strings/bytes
-    Bytes: 'bytes',
-    String: 'string',
-    string: 'string',
-  };
 
   if (PRIMS[t]) return [PRIMS[t], 'primitive'];
   if (/^Vec<u8>$/.test(t)) return ['bytes', 'primitive'];
@@ -89,7 +64,7 @@ function codecNameOf(typeRef: string): string {
   if (ALIASES[t]) return ALIASES[t];
 
   if (/^Vec<u8>$/.test(t)) return 'Bytes'; // treat Vec<u8> as Bytes
-  if (/^\[u8;[0-9]+\]$/.test(t)) return 'FixedBytes'; // your FixedBytesCodec should take bytes memory
+  if (/^\[u8;[0-9]+\]$/.test(t)) return 'FixedBytes';
 
   // Fallback: user-defined. Use sanitized PascalCase type name.
   return toIdent(typeRef);
@@ -109,9 +84,6 @@ export function generateSolidityStruct(typeName: string, def: StructShape): stri
 
   const structBody = fields
     .map(({ name, typeRef }) => {
-      if (solidityFieldTypeOf(typeRef)[1] === 'complex') {
-        // generateSolidityStruct(name, )
-      }
       return `    ${solidityFieldTypeOf(typeRef)[0]} ${name};`;
     })
     .join('\n');

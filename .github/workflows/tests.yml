@@ -20,29 +20,25 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Cache src/contracts node_modules
+      - name: Cache node_modules
         uses: actions/cache@v4
         with:
-          path: src/contracts/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('src/contracts/package-lock.json') }}
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies (contracts)
-        working-directory: src/contracts
         run: npm ci
 
       - name: Compile contracts
-        working-directory: src/contracts
         run: npx hardhat compile
 
       - name: Run contract tests
-        working-directory: src/contracts
         run: npx hardhat test --no-compile
 
       - name: Compile & run tests (fallback)
         if: failure()
-        working-directory: src/contracts
         run: |
           npx hardhat compile
           npx hardhat test
