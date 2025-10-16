@@ -1,5 +1,34 @@
 import { PRIMS, RESERVED, toIdent } from './common';
 
+/**
+ * Generator for Solidity struct definitions and SCALE encoders from Polkadot metadata.
+ * 
+ * Converts Rust struct definitions from chain metadata into:
+ * - Solidity struct declarations with typed fields
+ * - Codec libraries with SCALE encoding functions
+ * 
+ * Examples of generated code:
+ * 
+ * Input (metadata):
+ *   { "field1": "u128", "field2": "AccountId32" }
+ * 
+ * Output (Solidity):
+ *   struct MyStruct {
+ *       uint128 field1;
+ *       bytes32 field2;
+ *   }
+ *   library MyStructCodec {
+ *       function encode(MyStruct memory s) internal pure returns (bytes memory) {
+ *           return abi.encodePacked(U128Codec.encode(s.field1), AccountId32Codec.encode(s.field2));
+ *       }
+ *   }
+ * 
+ * SCALE encoding rules for structs:
+ * - Fields encoded in declaration order
+ * - No field names or padding
+ * - Simply concatenate encoded field values
+ */
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
