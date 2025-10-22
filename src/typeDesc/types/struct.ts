@@ -1,4 +1,5 @@
 import { PRIMS, RESERVED, toIdent } from './common';
+import { normalizeType, TYPE_PATTERNS, getCodecName } from './typeMapping';
 
 /**
  * Generator for Solidity struct definitions and SCALE encoders from Polkadot metadata.
@@ -55,43 +56,8 @@ interface StructField {
 // Constants
 // ============================================================================
 
-/**
- * Maps Rust primitive/common types to their Solidity codec library names.
- * Used when generating encoder function calls.
- */
-const TYPE_TO_CODEC_NAME: Record<string, string> = {
-  u8: 'U8',
-  u16: 'U16',
-  u32: 'U32',
-  u64: 'U64',
-  u128: 'U128',
-  u256: 'U256',
-  i8: 'I8',
-  i16: 'I16',
-  i32: 'I32',
-  i64: 'I64',
-  i128: 'I128',
-  i256: 'I256',
-  bool: 'Bool',
-  H256: 'H256',
-  H160: 'H160',
-  AccountId32: 'AccountId32',
-  Bytes: 'Bytes',
-  String: 'String',
-  string: 'String',
-};
-
-/**
- * Regex pattern to match Vec<u8> type.
- * In SCALE, Vec<u8> is encoded as compact length + raw bytes.
- */
-const VEC_U8_PATTERN = /^Vec<u8>$/;
-
-/**
- * Regex pattern to match fixed-size byte arrays like [u8; 32].
- * In SCALE, fixed arrays have no length prefix.
- */
-const FIXED_U8_ARRAY_PATTERN = /^\[u8;[0-9]+\]$/;
+// Note: TYPE_PATTERNS, normalizeType, and getCodecName are now imported 
+// from ./typeMapping to avoid duplication
 
 // ============================================================================
 // Helper Functions
@@ -159,12 +125,11 @@ function toVarIdent(x: string): string {
  * @returns Tuple of [Solidity type, category]
  */
 function solidityFieldTypeOf(typeRef: string): [string, 'primitive' | 'complex'] {
-  //! Duplicate 1 - duplicate normalization logic should be under a single helper function
-  const normalized = typeRef.replace(/\s+/g, ''); 
+  const normalized = normalizeType(typeRef);
 
   if (PRIMS[normalized]) return [PRIMS[normalized], 'primitive'];
-  if (VEC_U8_PATTERN.test(normalized)) return ['bytes', 'primitive'];
-  if (FIXED_U8_ARRAY_PATTERN.test(normalized)) return ['bytes', 'primitive'];
+  if (TYPE_PATTERNS.VEC_U8.test(normalized)) return ['bytes', 'primitive'];
+  if (TYPE_PATTERNS.FIXED_U8_ARRAY.test(normalized)) return ['bytes', 'primitive'];
   // Fallback: user-defined type (enum/struct/tuple wrapper). Keep as type name.
   return [toIdent(typeRef), 'complex'];
 }
@@ -174,26 +139,22 @@ function solidityFieldTypeOf(typeRef: string): [string, 'primitive' | 'complex']
  * Used when generating encoder function calls.
  * 
  * Examples:
- * - "u128" -> "U128" (calls U128Codec.encode)
- * - "Vec<u8>" -> "Bytes" (calls BytesCodec.encode)
+ * - "u128" -> "ScaleU128" (calls ScaleU128Codec.encode)
+ * - "Vec<u8>" -> "ScaleBytes" (calls ScaleBytesCodec.encode)
  * - "MyCustomType" -> "MyCustomType" (calls MyCustomTypeCodec.encode)
  * 
  * @param typeRef - Rust type reference from metadata
  * @returns Codec library name (PascalCase)
  */
 function codecNameOf(typeRef: string): string {
-  const normalized = typeRef.replace(/\s+/g, ''); //! Duplicate 2 (see Duplicate 1)
-
-  // Check if it's a known primitive/common type
-  if (TYPE_TO_CODEC_NAME[normalized]) {
-    return TYPE_TO_CODEC_NAME[normalized];
+  const codecName = getCodecName(typeRef);
+  
+  // If it's a known type from TYPE_TO_CODEC_NAME, it already has "Scale" prefix
+  // For custom types, we need to use the sanitized identifier
+  if (codecName.startsWith('Scale')) {
+    return codecName;
   }
-
-  // Check special patterns
-  //! Logic duplication; if we add a new pattern (eg. Vec<u16>), we must update both functions.
-  if (VEC_U8_PATTERN.test(normalized)) return 'Bytes';
-  if (FIXED_U8_ARRAY_PATTERN.test(normalized)) return 'FixedBytes';
-
+  
   // Fallback: user-defined. Use sanitized PascalCase type name.
   return toIdent(typeRef);
 }

@@ -1,9 +1,8 @@
-// Auto-generated from Westend Asset Hub (westmint v1020000)
+// Auto-generated from Westend Asset Hub (westmint v1020004)
 // Source WS: wss://westend-asset-hub-rpc.polkadot.io
 pragma solidity ^0.8.20;
 
 import "./ScaleCodec.sol";
-import "./AssetconversionCallEncoder.sol";
 
 // Auto-generated from Substrate struct StagingXcmV5Location
 
@@ -43,44 +42,6 @@ library StagingXcmV5JunctionsCodec {
     function encode(StagingXcmV5Junctions memory e) internal pure returns (bytes memory) {
         return bytes.concat(abi.encodePacked(uint8(e.tag)), e.payload);
     }
-
-
-    struct HerePayload {
-            bytes _0;
-        }
-    
-    struct X1Payload {
-            bytes[1] _0;
-        }
-    
-    struct X2Payload {
-            bytes[2] _0;
-        }
-    
-    struct X3Payload {
-            bytes[3] _0;
-        }
-    
-    struct X4Payload {
-            bytes[4] _0;
-        }
-    
-    struct X5Payload {
-            bytes[5] _0;
-        }
-    
-    struct X6Payload {
-            bytes[6] _0;
-        }
-    
-    struct X7Payload {
-            bytes[7] _0;
-        }
-    
-    struct X8Payload {
-            bytes[8] _0;
-        }
-
 
 function Here(bytes _0) internal pure returns (StagingXcmV5Junctions memory e) {
             e.tag = StagingXcmV5JunctionsTag.Here;
@@ -188,52 +149,6 @@ library StagingXcmV5JunctionNetworkIdCodec {
         return bytes.concat(abi.encodePacked(uint8(e.tag)), e.payload);
     }
 
-
-    struct ByGenesisPayload {
-            bytes32 _0;
-        }
-    
-    struct ByForkPayload {
-            bytes _0;
-        }
-    
-    struct PolkadotPayload {
-            bytes _0;
-        }
-    
-    struct KusamaPayload {
-            bytes _0;
-        }
-    
-    struct Unused4Payload {
-            bytes _0;
-        }
-    
-    struct Unused5Payload {
-            bytes _0;
-        }
-    
-    struct Unused6Payload {
-            bytes _0;
-        }
-    
-    struct EthereumPayload {
-            bytes _0;
-        }
-    
-    struct BitcoinCorePayload {
-            bytes _0;
-        }
-    
-    struct BitcoinCashPayload {
-            bytes _0;
-        }
-    
-    struct PolkadotBulletinPayload {
-            bytes _0;
-        }
-
-
 function ByGenesis(bytes32 _0) internal pure returns (StagingXcmV5JunctionNetworkId memory e) {
             e.tag = StagingXcmV5JunctionNetworkIdTag.ByGenesis;
             e.payload = ScaleFixedBytes.encode(bytes32(_0));
@@ -294,7 +209,7 @@ function ByGenesis(bytes32 _0) internal pure returns (StagingXcmV5JunctionNetwor
 /// @title Typed SCALE encoders for selected calls (supported classified args only)
 library AssetconversionCallEncoder {
     /// @notice assetConversion.createPool
-    function assetConversion_createPool(StagingXcmV5Location asset1, StagingXcmV5Location asset2) internal pure returns (bytes memory) {
+    function assetConversion_createPool(StagingXcmV5Location calldata asset1, StagingXcmV5Location calldata asset2) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(56, 0),
             StagingXcmV5LocationCodec.encode(asset1),
@@ -303,7 +218,7 @@ library AssetconversionCallEncoder {
     }
 
     /// @notice assetConversion.addLiquidity
-    function assetConversion_addLiquidity(StagingXcmV5Location asset1, StagingXcmV5Location asset2, uint128 amount1_desired, uint128 amount2_desired, uint128 amount1_min, uint128 amount2_min, bytes32 mint_to) internal pure returns (bytes memory) {
+    function assetConversion_addLiquidity(StagingXcmV5Location calldata asset1, StagingXcmV5Location calldata asset2, uint128 amount1_desired, uint128 amount2_desired, uint128 amount1_min, uint128 amount2_min, bytes32 mint_to) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(56, 1),
             StagingXcmV5LocationCodec.encode(asset1),
@@ -317,7 +232,7 @@ library AssetconversionCallEncoder {
     }
 
     /// @notice assetConversion.removeLiquidity
-    function assetConversion_removeLiquidity(StagingXcmV5Location asset1, StagingXcmV5Location asset2, uint128 lp_token_burn, uint128 amount1_min_receive, uint128 amount2_min_receive, bytes32 withdraw_to) internal pure returns (bytes memory) {
+    function assetConversion_removeLiquidity(StagingXcmV5Location calldata asset1, StagingXcmV5Location calldata asset2, uint128 lp_token_burn, uint128 amount1_min_receive, uint128 amount2_min_receive, bytes32 withdraw_to) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(56, 2),
             StagingXcmV5LocationCodec.encode(asset1),
@@ -330,7 +245,7 @@ library AssetconversionCallEncoder {
     }
 
     /// @notice assetConversion.swapExactTokensForTokens
-    function assetConversion_swapExactTokensForTokens(Vec<StagingXcmV5Location> path, uint128 amount_in, uint128 amount_out_min, bytes32 send_to, bool keep_alive) internal pure returns (bytes memory) {
+    function assetConversion_swapExactTokensForTokens(Vec<StagingXcmV5Location> calldata path, uint128 amount_in, uint128 amount_out_min, bytes32 send_to, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(56, 3),
             Vec<StagingXcmV5Location>Codec.encode(path),
@@ -342,7 +257,7 @@ library AssetconversionCallEncoder {
     }
 
     /// @notice assetConversion.swapTokensForExactTokens
-    function assetConversion_swapTokensForExactTokens(Vec<StagingXcmV5Location> path, uint128 amount_out, uint128 amount_in_max, bytes32 send_to, bool keep_alive) internal pure returns (bytes memory) {
+    function assetConversion_swapTokensForExactTokens(Vec<StagingXcmV5Location> calldata path, uint128 amount_out, uint128 amount_in_max, bytes32 send_to, bool keep_alive) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(56, 4),
             Vec<StagingXcmV5Location>Codec.encode(path),
@@ -354,7 +269,7 @@ library AssetconversionCallEncoder {
     }
 
     /// @notice assetConversion.touch
-    function assetConversion_touch(StagingXcmV5Location asset1, StagingXcmV5Location asset2) internal pure returns (bytes memory) {
+    function assetConversion_touch(StagingXcmV5Location calldata asset1, StagingXcmV5Location calldata asset2) internal pure returns (bytes memory) {
         return bytes.concat(
             ScaleCodec.callIndex(56, 5),
             StagingXcmV5LocationCodec.encode(asset1),

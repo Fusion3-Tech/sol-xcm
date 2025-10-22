@@ -1,4 +1,4 @@
-// Auto-generated from Westend Asset Hub (westmint v1020003)
+// Auto-generated from Westend Asset Hub (westmint v1020004)
 // Source WS: wss://westend-asset-hub-rpc.polkadot.io
 pragma solidity ^0.8.20;
 
@@ -23,21 +23,15 @@ library PalletBalancesAdjustmentDirectionCodec {
     }
 
 
-    // Increase has no payload
-    
-    // Decrease has no payload
-
-
-
     function Increase() internal pure returns (PalletBalancesAdjustmentDirection memory e) {
       e.tag = PalletBalancesAdjustmentDirectionTag.Increase;
-      e.payload = "";
+      e.payload = new bytes(0);
     }
     
     
     function Decrease() internal pure returns (PalletBalancesAdjustmentDirection memory e) {
       e.tag = PalletBalancesAdjustmentDirectionTag.Decrease;
-      e.payload = "";
+      e.payload = new bytes(0);
     }
 }
 

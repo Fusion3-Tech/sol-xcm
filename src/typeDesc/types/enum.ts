@@ -1,4 +1,11 @@
 import { PRIMS, toIdent } from './common';
+import {
+  normalizeType,
+  TYPE_PATTERNS,
+  TYPE_TO_CODEC_NAME,
+  MAX_SOLIDITY_BYTES_SIZE,
+  sanitizeTypeForEncoder,
+} from './typeMapping';
 
 /**
  * Generator for Solidity enum definitions and SCALE encoders from Polkadot metadata.
@@ -73,44 +80,8 @@ type Variant = {
 // Constants
 // ============================================================================
 
-/** Regex patterns for Rust type parsing */
-// TODO: Move to shared typeMapping.ts - these patterns are duplicated in struct.ts
-const TYPE_PATTERNS = {
-  VEC: /^Vec<(.+)>$/,
-  BOUNDED_VEC: /^BoundedVec<(.+),(\d+)>$/,
-  FIXED_ARRAY: /^\[(.+);(\d+)\]$/,
-  COMPACT: /^Compact<(.+)>$/,
-  COMPACT_UINT: /^Compact<(u\d+)>$/,
-  OPTION: /^Option<(.+)>$/,
-  U8: /^u8$/,
-} as const;
-
-/** Maximum size for Solidity bytesN types (bytes1 to bytes32) */
-const MAX_SOLIDITY_BYTES_SIZE = 32;
-
-/**
- * Maps Rust primitive types to their SCALE encoder library names.
- * Recreated as object to avoid function call overhead in hot path.
- */
-// TODO: Move to shared typeMapping.ts - encoder name mapping
-const PRIMITIVE_ENCODERS: Record<string, string> = {
-  bool: 'ScaleBool',
-  char: 'ScaleU32', // Rust char is 4 bytes (Unicode scalar value)
-  u8: 'ScaleU8',
-  u16: 'ScaleU16',
-  u32: 'ScaleU32',
-  u64: 'ScaleU64',
-  u128: 'ScaleU128',
-  u256: 'ScaleU256',
-  i8: 'ScaleI8',
-  i16: 'ScaleI16',
-  i32: 'ScaleI32',
-  i64: 'ScaleI64',
-  i128: 'ScaleI128',
-  i256: 'ScaleI256',
-  Bytes: 'ScaleBytes',
-  String: 'ScaleBytes', // String encoded as UTF-8 bytes
-};
+// Note: TYPE_PATTERNS, MAX_SOLIDITY_BYTES_SIZE, and TYPE_TO_CODEC_NAME 
+// are now imported from ./typeMapping to avoid duplication
 
 // ============================================================================
 // Enum Variant Parsing
@@ -203,37 +174,24 @@ export function generateSolidityEnum(typeName: string, json: string | EnumJson):
   const enumName = toIdent(typeName);
   const variants = extractVariants(def);
   
-  //! Missing validation for empty enums,
+  // Validate enum is not empty
+  if (variants.length === 0) {
+    throw new Error(`Enum ${typeName} has no variants - cannot generate Solidity code for empty enum`);
+  }
+  
   const tagName = `${enumName}Tag`;
   const libName = `${enumName}Codec`;
 
   const tagMembers = variants.map((v) => `    ${v.name}`).join(',\n');
 
-  //! These payload structs are generated but never used in the code?
-  const payloadStructs = variants
-    .map((v) => {
-      if (v.fields.length === 0) return `// ${v.name} has no payload`;
-      const lines = v.fields
-        .map((f, i) => {
-          const solT = solTypeOf(f.type);
-          const fname = f.name ?? `_${i}`;
-          return `        ${solT} ${fname};`;
-        })
-        .join('\n');
-      return `struct ${v.name}Payload {\n${lines}\n    }`;
-    })
-    .join('\n\n');
-
   // Constructors for each variant
   const ctors = variants
     .map((v) => {
       if (v.fields.length === 0) {
-        //! Empty string "" vs actual empty bytes is unclear in Solidity
-        //! Use `new bytes(0)` or `hex""` for clarity
         return `
 function ${v.name}() internal pure returns (${enumName} memory e) {
   e.tag = ${tagName}.${v.name};
-  e.payload = "";
+  e.payload = new bytes(0);
 }`;
       }
       const params = v.fields.map((f, i) => `${solTypeOf(f.type)} ${f.name ?? `_${i}`}`).join(', ');
@@ -270,8 +228,6 @@ library ${libName} {
         return bytes.concat(abi.encodePacked(uint8(e.tag)), e.payload);
     }
 
-${payloadStructs.length ? '\n    ' + payloadStructs.replace(/\n/g, '\n    ') + '\n' : ''}
-
 ${ctors.replace(/\n/g, '\n    ')}
 }
 `;
@@ -303,7 +259,7 @@ ${ctors.replace(/\n/g, '\n    ')}
  * solTypeOf("[u8; 32]") // returns "bytes32"
  */
 export function solTypeOf(t: string): string {
-  const normalized = t.replace(/\s+/g, '');
+  const normalized = normalizeType(t);
 
   //! TypeScript doesn't guarantee PRIMS[normalized] is defined after this check
   if (PRIMS[normalized]) return PRIMS[normalized];
@@ -341,9 +297,8 @@ export function solTypeOf(t: string): string {
   match = normalized.match(TYPE_PATTERNS.OPTION);
   if (match) return solTypeOf(match[1]); // for function params; tag handled by encoder
 
-  //! Consider logging warning or throwing error for truly unknown types to catch metadata bugs early
-  // Fallback: treat unknown as bytes
-  return 'bytes';
+  // Unknown type: throw error to catch metadata bugs early
+  throw new Error(`Cannot map unknown Rust type to Solidity: ${t}`);
 }
 
 // ============================================================================
@@ -372,17 +327,15 @@ export function solTypeOf(t: string): string {
  * encodeExprOf("data", "Vec<u8>") // returns "ScaleBytes.encode(data)"
  */
 export function encodeExprOf(expr: string, t: string): string {
-  const normalized = t.replace(/\s+/g, '');
+  const normalized = normalizeType(t);
 
   // Check primitives
-  if (PRIMITIVE_ENCODERS[normalized]) {
-    return `${PRIMITIVE_ENCODERS[normalized]}.encode(${expr})`;
+  if (TYPE_TO_CODEC_NAME[normalized]) {
+    return `${TYPE_TO_CODEC_NAME[normalized]}.encode(${expr})`;
   }
 
-  //! Rust metadata uses 'String' (capitalized). If lowercase 'string' never appears, remove it
-  //! If it's for Solidity's string type, this should be documented
   // Special case: String encoded as UTF-8 bytes
-  if (normalized === 'String' || normalized === 'string') {
+  if (normalized === 'String') {
     return `ScaleBytes.encode(bytes(${expr}))`; // UTF-8 bytes
   }
 
@@ -433,36 +386,6 @@ export function encodeExprOf(expr: string, t: string): string {
     return `ScaleOption.encode_${sanitizeTypeForEncoder(inner)}(${expr})`;
   }
 
-  //! Fallback returns raw expression assuming already-encoded bytes
-  // Fallback: assume already-encoded bytes
-  return `${expr}`;
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Converts a Rust type reference to a safe identifier for encoder function names.
- * Handles special characters and nested types to create valid Solidity identifiers.
- * 
- * Examples:
- * - "u32" -> "U32"
- * - "Vec<u32>" -> "Vec_U32"
- * - "[AccountId32; 10]" -> "Arr_AccountId32_10"
- * 
- * @param rustType - Rust type reference
- * @returns Sanitized type string safe for use in function names
- */
-function sanitizeTypeForEncoder(t: string): string {
-  return t
-    .replace(/\s+/g, '')
-    .replace(/\[/g, 'Arr_')
-    .replace(/]/g, '')
-    .replace(/;/g, '_')
-    .replace(/</g, '_')
-    .replace(/>/g, '')
-    .replace(/,/g, '_')
-    .replace(/u(\d+)/g, 'U$1')
-    .replace(/i(\d+)/g, 'I$1');
+  // Unknown type: fallback assumes pre-encoded bytes
+  throw new Error(`Cannot generate encoder for unknown Rust type: ${t}`);
 }

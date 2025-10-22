@@ -131,17 +131,15 @@ export function parseFixedArray(spec: string): FixedArraySpec | null {
   // Parse and validate length
 
   const length = Number(lengthString);
+  const MAX_ARRAY_LENGTH = 10000; // Reasonable limit for Solidity
+
   if (!Number.isInteger(length) || length < 0 ) {
     return null; // Length must be a non-negative integer 
   }
   
-  //! Either consider fail on array that is too large (|| length > 1024) 
-  //! inside Parse and validate length or Number.MAX_SAFE_INTEGER
-  //! const MAX_ARRAY_LENGTH = 10000; // Reasonable limit for Solidity
-
-  //! if (length > MAX_ARRAY_LENGTH) {
-  //!   return null; // Array too large for practical use
-  //! }
+  if (length > MAX_ARRAY_LENGTH) {
+    return null; // Array too large for practical use
+  }
 
   return { _array: { elem: elementType, len: length } };
 }
